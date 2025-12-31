@@ -171,6 +171,33 @@ body{
       <div class="search">🔍 Buscar</div>
     </div>
 
+    <div class="card">
+  <h4>Meta do mês (R$)</h4>
+  <input id="meta" type="number" placeholder="Ex: 15000"
+    style="width:100%;padding:10px;border-radius:10px;border:none;">
+</div>
+
+<div class="card">
+  <h4>Nova venda</h4>
+  <input id="venda" type="number" placeholder="Valor da venda"
+    style="width:100%;padding:10px;border-radius:10px;border:none;margin-bottom:10px;">
+
+  <select id="percentual"
+    style="width:100%;padding:10px;border-radius:10px;">
+    <option value="6">6%</option>
+    <option value="5">5%</option>
+    <option value="4">4%</option>
+    <option value="3">3%</option>
+  </select>
+
+  <button onclick="adicionarVenda()"
+    style="margin-top:10px;width:100%;padding:10px;border-radius:10px;
+    background:#6366f1;color:white;border:none;">
+    Adicionar venda
+  </button>
+</div>
+
+    
     <div class="cards">
       <div class="card">
         <h4>Meta do mês</h4>
@@ -204,6 +231,37 @@ body{
 
   </main>
 </div>
+<script>
+let totalVendido = 0;
+let totalComissao = 0;
+
+function adicionarVenda() {
+  const venda = Number(document.getElementById("venda").value);
+  const percentual = Number(document.getElementById("percentual").value);
+  const meta = Number(document.getElementById("meta").value);
+
+  if (venda <= 0) {
+    alert("Digite um valor de venda válido");
+    return;
+  }
+
+  const comissao = venda * percentual / 100;
+
+  totalVendido += venda;
+  totalComissao += comissao;
+
+  alert(
+    "Venda adicionada!\n\n" +
+    "Valor da venda: R$ " + venda.toFixed(2) + "\n" +
+    "Comissão desta venda: R$ " + comissao.toFixed(2) + "\n\n" +
+    "Total vendido: R$ " + totalVendido.toFixed(2) + "\n" +
+    "Minha comissão total: R$ " + totalComissao.toFixed(2)
+  );
+
+  document.getElementById("venda").value = "";
+}
+</script>
+
 </body>
 </html>
 
