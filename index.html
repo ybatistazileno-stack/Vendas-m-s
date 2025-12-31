@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard de Vendas</title>
+
+<style>
+:root{
+  --bg:#0b1020;
+  --card:#111827;
+  --card2:#0f172a;
+  --primary:#6366f1;
+  --secondary:#22c55e;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Segoe UI, Inter, Arial;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:240px 1fr;
+  min-height:100vh;
+}
+
+/* SIDEBAR */
+.sidebar{
+  background:#0a0f1e;
+  padding:25px;
+}
+
+.sidebar h2{
+  color:var(--primary);
+}
+
+.sidebar ul{
+  list-style:none;
+  padding:0;
+}
+
+.sidebar li{
+  padding:12px;
+  margin:8px 0;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.sidebar li:hover{
+  background:#1f2937;
+}
+
+/* MAIN */
+.main{
+  padding:30px;
+}
+
+/* HEADER */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:30px;
+}
+
+.search{
+  background:var(--card);
+  padding:10px 15px;
+  border-radius:12px;
+  width:300px;
+  color:var(--muted);
+}
+
+/* CARDS */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:20px;
+}
+
+.card{
+  background:linear-gradient(145deg,#111827,#0f172a);
+  padding:20px;
+  border-radius:18px;
+  box-shadow:0 20px 40px rgba(0,0,0,.4);
+}
+
+.card h4{
+  margin:0;
+  color:var(--muted);
+  font-weight:500;
+}
+
+.card h2{
+  margin:10px 0 0;
+  font-size:28px;
+}
+
+/* GRAPH */
+.graph{
+  margin-top:30px;
+  background:linear-gradient(145deg,#111827,#0f172a);
+  border-radius:20px;
+  padding:25px;
+  height:280px;
+  position:relative;
+}
+
+.fake-line{
+  position:absolute;
+  bottom:40px;
+  left:30px;
+  right:30px;
+  height:140px;
+  background:linear-gradient(90deg,var(--primary),#9333ea);
+  border-radius:100px;
+  opacity:.3;
+}
+
+/* COMMISSION */
+.commission{
+  margin-top:30px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:20px;
+}
+
+.percent{
+  background:var(--card);
+  padding:18px;
+  border-radius:16px;
+  text-align:center;
+}
+
+.percent h3{
+  margin:0;
+  color:var(--secondary);
+}
+
+.percent span{
+  color:var(--muted);
+  font-size:14px;
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <h2>Vendas</h2>
+    <ul>
+      <li>Dashboard</li>
+      <li>Vendas</li>
+      <li>Comissões</li>
+      <li>Meta</li>
+      <li>Configurações</li>
+    </ul>
+  </aside>
+
+  <main class="main">
+
+    <div class="header">
+      <h1>Dashboard</h1>
+      <div class="search">🔍 Buscar</div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h4>Meta do mês</h4>
+        <h2>R$ 15.000</h2>
+      </div>
+      <div class="card">
+        <h4>Total vendido</h4>
+        <h2>R$ 8.450</h2>
+      </div>
+      <div class="card">
+        <h4>Falta p/ meta</h4>
+        <h2>R$ 6.550</h2>
+      </div>
+      <div class="card">
+        <h4>Minha comissão</h4>
+        <h2 style="color:var(--secondary)">R$ 1.230</h2>
+      </div>
+    </div>
+
+    <div class="graph">
+      <h3>Evolução de vendas</h3>
+      <div class="fake-line"></div>
+    </div>
+
+    <div class="commission">
+      <div class="percent"><h3>6%</h3><span>R$ 420</span></div>
+      <div class="percent"><h3>5%</h3><span>R$ 350</span></div>
+      <div class="percent"><h3>4%</h3><span>R$ 280</span></div>
+      <div class="percent"><h3>3%</h3><span>R$ 180</span></div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>
+
