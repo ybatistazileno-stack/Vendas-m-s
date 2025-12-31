@@ -252,6 +252,28 @@ const comissao = venda * percentual / 100;
 
 totalVendido += venda;
 totalComissao += comissao;
+    // Atualiza Meta
+  document.getElementById("metaValor").innerText =
+    "R$ " + meta.toFixed(2);
+
+  // Atualiza Total Vendido
+  document.getElementById("totalVendido").innerText =
+    "R$ " + totalVendido.toFixed(2);
+
+  // Atualiza Comissão Total
+  document.getElementById("totalComissao").innerText =
+    "R$ " + totalComissao.toFixed(2);
+
+  // Atualiza Falta p/ Meta
+  if (meta > 0) {
+    const falta = meta - totalVendido;
+    document.getElementById("faltaMeta").innerText =
+      "R$ " + (falta > 0 ? falta.toFixed(2) : "0.00");
+  }
+
+  // Limpa campo venda
+  document.getElementById("venda").value = "";
+
 
 // Atualiza Meta
 document.getElementById("metaValor").innerText =
