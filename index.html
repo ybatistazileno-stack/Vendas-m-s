@@ -57,7 +57,6 @@ button{
   color:white;
   cursor:pointer;
 }
-button:hover{opacity:.9}
 h4{margin:0;color:var(--muted)}
 h2{margin-top:10px}
 </style>
@@ -82,12 +81,12 @@ h2{margin-top:10px}
 <div class="cards">
   <div class="card">
     <h4>Meta do mês (R$)</h4>
-    <input id="meta" placeholder="Ex: 145.000">
+    <input id="meta" placeholder="Ex: 15000">
   </div>
 
   <div class="card">
     <h4>Nova venda</h4>
-    <input id="venda" placeholder="Ex: 2.090">
+    <input id="venda" placeholder="Ex: 2090">
     <select id="percentual">
       <option value="6">6%</option>
       <option value="5">5%</option>
@@ -99,11 +98,11 @@ h2{margin-top:10px}
 </div>
 
 <div class="cards">
-  <div class="card"><h4>Meta</h4><h2 id="metaValor">R$ 0</h2></div>
-  <div class="card"><h4>Total vendido</h4><h2 id="totalVendido">R$ 0</h2></div>
-  <div class="card"><h4>Falta p/ meta</h4><h2 id="faltaMeta">R$ 0</h2></div>
+  <div class="card"><h4>Meta</h4><h2 id="metaValor">R$ 0,00</h2></div>
+  <div class="card"><h4>Total vendido</h4><h2 id="totalVendido">R$ 0,00</h2></div>
+  <div class="card"><h4>Falta p/ meta</h4><h2 id="faltaMeta">R$ 0,00</h2></div>
   <div class="card"><h4>Minha comissão</h4>
-    <h2 id="totalComissao" style="color:var(--secondary)">R$ 0</h2>
+    <h2 id="totalComissao" style="color:var(--secondary)">R$ 0,00</h2>
   </div>
 </div>
 
@@ -111,60 +110,35 @@ h2{margin-top:10px}
 </div>
 
 <script>
-function parseValor(valor){
-  if(!valor) return 0;
-  valor = valor.toString().trim();
-  valor = valor.replace(/\./g,"");
-  valor = valor.replace(",",".");
-  return Number(valor);
-}
-
-let meta = parseValor(localStorage.getItem("meta") || "0");
-let vendas = JSON.parse(localStorage.getItem("vendas")) || [];
-
-function atualizar(){
-  const totalVendido = vendas.reduce((s,v)=>s+v.valor,0);
-  const totalComissao = vendas.reduce((s,v)=>s+v.comissao,0);
-
-  document.getElementById("metaValor").innerText = "R$ " + meta.toFixed(2);
-  document.getElementById("totalVendido").innerText = "R$ " + totalVendido.toFixed(2);
-  document.getElementById("totalComissao").innerText = "R$ " + totalComissao.toFixed(2);
-  document.getElementById("faltaMeta").innerText =
-    "R$ " + Math.max(meta-totalVendido,0).toFixed(2);
-
-  localStorage.setItem("meta", meta);
-  localStorage.setItem("vendas", JSON.stringify(vendas));
-}
+let totalVendido = 0;
+let totalComissao = 0;
 
 function adicionarVenda(){
-  const valor = parseValor(document.getElementById("venda").value);
-  const perc = Number(document.getElementById("percentual").value);
+  const venda = Number(document.getElementById("venda").value);
+  const percentual = Number(document.getElementById("percentual").value);
+  const meta = Number(document.getElementById("meta").value);
 
-  if(isNaN(valor) || valor <= 0){
+  if(isNaN(venda) || venda <= 0){
     alert("Digite um valor válido");
     return;
   }
 
-  vendas.push({
-    valor: valor,
-    comissao: valor * (perc/100)
-  });
+  const comissao = venda * (percentual/100);
+
+  totalVendido += venda;
+  totalComissao += comissao;
+
+  document.getElementById("metaValor").innerText = "R$ " + (meta || 0).toFixed(2);
+  document.getElementById("totalVendido").innerText = "R$ " + totalVendido.toFixed(2);
+  document.getElementById("totalComissao").innerText = "R$ " + totalComissao.toFixed(2);
+
+  const falta = (meta || 0) - totalVendido;
+  document.getElementById("faltaMeta").innerText =
+    "R$ " + (falta > 0 ? falta.toFixed(2) : "0.00");
 
   document.getElementById("venda").value = "";
-  atualizar();
 }
-
-document.getElementById("meta").addEventListener("input", e=>{
-  meta = parseValor(e.target.value || "0");
-  atualizar();
-});
-
-document.getElementById("meta").value = meta || "";
-atualizar();
 </script>
 
 </body>
 </html>
-
-
-
