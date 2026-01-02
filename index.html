@@ -5,59 +5,24 @@
 <title>Dashboard de Vendas</title>
 
 <style>
-:root{
-  --bg:#0b1020;
-  --card:#111827;
-  --primary:#6366f1;
-  --secondary:#22c55e;
-  --text:#e5e7eb;
-}
-*{box-sizing:border-box}
 body{
   margin:0;
-  background:var(--bg);
-  color:var(--text);
+  background:#0b1020;
+  color:#e5e7eb;
   font-family:Segoe UI, Arial;
 }
-.layout{
-  display:grid;
-  grid-template-columns:220px 1fr;
-  min-height:100vh;
-}
-.sidebar{
-  background:#0a0f1e;
-  padding:20px;
-}
-.sidebar h2{color:var(--primary)}
-.sidebar ul{list-style:none;padding:0}
-.sidebar li{padding:10px;border-radius:8px}
-.sidebar li:hover{background:#1f2937}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+.sidebar{background:#0a0f1e;padding:20px}
+.sidebar h2{color:#6366f1}
 .main{padding:30px}
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:20px;
-  margin-top:20px;
-}
-.card{
-  background:linear-gradient(145deg,#111827,#0f172a);
-  padding:20px;
-  border-radius:18px;
-}
-input,select,button{
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  margin-top:8px;
-}
-button{
-  background:var(--primary);
-  color:white;
-  cursor:pointer;
-}
-h4{margin:0}
-h2{margin-top:10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:20px}
+.card{background:#111827;padding:20px;border-radius:16px}
+input,select,button{width:100%;padding:10px;border-radius:10px;border:none;margin-top:8px}
+button{background:#6366f1;color:white;cursor:pointer}
+table{width:100%;border-collapse:collapse;margin-top:20px}
+th,td{padding:10px;border-bottom:1px solid #1f2937;text-align:left}
+th{color:#9ca3af}
+.danger{background:#ef4444}
 </style>
 </head>
 
@@ -66,11 +31,6 @@ h2{margin-top:10px}
 
 <aside class="sidebar">
   <h2>Vendas</h2>
-  <ul>
-    <li>Dashboard</li>
-    <li>Vendas</li>
-    <li>Meta</li>
-  </ul>
 </aside>
 
 <main class="main">
@@ -79,19 +39,19 @@ h2{margin-top:10px}
 <div class="cards">
   <div class="card">
     <h4>Meta do mês (R$)</h4>
-    <input id="meta" placeholder="Ex: 15000">
+    <input id="metaInput" placeholder="Ex: 15000">
   </div>
 
   <div class="card">
-    <h4>Valor da venda (R$)</h4>
-    <input id="venda" placeholder="Ex: 2090">
+    <h4>Nova venda</h4>
+    <input id="vendaInput" placeholder="Ex: 2090">
     <select id="percentual">
       <option value="6">6%</option>
       <option value="5">5%</option>
       <option value="4">4%</option>
       <option value="3">3%</option>
     </select>
-    <button type="button" onclick="adicionarVenda()">Adicionar venda</button>
+    <button onclick="adicionarVenda()">Adicionar venda</button>
   </div>
 </div>
 
@@ -99,46 +59,96 @@ h2{margin-top:10px}
   <div class="card"><h4>Meta</h4><h2 id="metaValor">R$ 0,00</h2></div>
   <div class="card"><h4>Total vendido</h4><h2 id="totalVendido">R$ 0,00</h2></div>
   <div class="card"><h4>Falta p/ meta</h4><h2 id="faltaMeta">R$ 0,00</h2></div>
-  <div class="card">
-    <h4>Comissão desta venda</h4>
-    <h2 id="comissao" style="color:var(--secondary)">R$ 0,00</h2>
-  </div>
+  <div class="card"><h4>Comissão</h4><h2 id="totalComissao" style="color:#22c55e">R$ 0,00</h2></div>
+</div>
+
+<div class="card">
+  <h3>Histórico de vendas (mês atual)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Venda</th>
+        <th>%</th>
+        <th>Comissão</th>
+      </tr>
+    </thead>
+    <tbody id="historico"></tbody>
+  </table>
+  <button class="danger" onclick="limparMes()">Limpar mês</button>
 </div>
 
 </main>
 </div>
 
 <script>
-let totalVendido = 0;
+const hoje = new Date();
+const mesAtual = hoje.getFullYear()+"-"+String(hoje.getMonth()+1).padStart(2,"0");
+
+let vendas = JSON.parse(localStorage.getItem("vendas_"+mesAtual)) || [];
+let meta = Number(localStorage.getItem("meta_"+mesAtual)) || 0;
+
+function salvar(){
+  localStorage.setItem("vendas_"+mesAtual, JSON.stringify(vendas));
+  localStorage.setItem("meta_"+mesAtual, meta);
+}
+
+function atualizar(){
+  const totalVendido = vendas.reduce((s,v)=>s+v.valor,0);
+  const totalComissao = vendas.reduce((s,v)=>s+v.comissao,0);
+
+  document.getElementById("metaValor").innerText = "R$ "+meta.toFixed(2);
+  document.getElementById("totalVendido").innerText = "R$ "+totalVendido.toFixed(2);
+  document.getElementById("totalComissao").innerText = "R$ "+totalComissao.toFixed(2);
+  document.getElementById("faltaMeta").innerText =
+    "R$ "+Math.max(meta-totalVendido,0).toFixed(2);
+
+  const tbody = document.getElementById("historico");
+  tbody.innerHTML = "";
+  vendas.forEach(v=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${v.data}</td>
+        <td>R$ ${v.valor.toFixed(2)}</td>
+        <td>${v.percentual}%</td>
+        <td>R$ ${v.comissao.toFixed(2)}</td>
+      </tr>`;
+  });
+}
+
+document.getElementById("metaInput").value = meta;
+document.getElementById("metaInput").addEventListener("input",e=>{
+  meta = Number(e.target.value)||0;
+  salvar();
+  atualizar();
+});
 
 function adicionarVenda(){
-  const meta = Number(document.getElementById("meta").value) || 0;
-  const venda = Number(document.getElementById("venda").value);
-  const percentual = Number(document.getElementById("percentual").value);
+  const valor = Number(document.getElementById("vendaInput").value);
+  const perc = Number(document.getElementById("percentual").value);
+  if(valor<=0) return alert("Valor inválido");
 
-  if(venda <= 0){
-    alert("Digite um valor de venda válido");
-    return;
-  }
+  vendas.push({
+    valor,
+    percentual:perc,
+    comissao:valor*(perc/100),
+    data:new Date().toLocaleDateString()
+  });
 
-  totalVendido += venda;
-  const comissao = venda * (percentual/100);
-  const falta = meta - totalVendido;
-
-  document.getElementById("metaValor").innerText =
-    "R$ " + meta.toFixed(2);
-
-  document.getElementById("totalVendido").innerText =
-    "R$ " + totalVendido.toFixed(2);
-
-  document.getElementById("faltaMeta").innerText =
-    "R$ " + (falta > 0 ? falta.toFixed(2) : "0.00");
-
-  document.getElementById("comissao").innerText =
-    "R$ " + comissao.toFixed(2);
-
-  document.getElementById("venda").value = "";
+  document.getElementById("vendaInput").value="";
+  salvar();
+  atualizar();
 }
+
+function limparMes(){
+  if(confirm("Deseja apagar todas as vendas do mês?")){
+    vendas=[];
+    salvar();
+    atualizar();
+  }
+}
+
+atualizar();
 </script>
 
 </body>
