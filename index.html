@@ -6,11 +6,12 @@
 
 <style>
 :root{
-  --fundo:#0b1020;
-  --cartao:#111827;
-  --primaria:#6366f1;
-  --sucesso:#22c55e;
-  --texto:#e5e7eb;
+  --bg:#0b1020;
+  --card:#111827;
+  --primary:#6366f1;
+  --green:#22c55e;
+  --red:#ef4444;
+  --text:#e5e7eb;
   --muted:#9ca3af;
 }
 
@@ -18,10 +19,12 @@
 
 body{
   margin:0;
-  background:var(--fundo);
-  color:var(--texto);
-  font-family:Segoe UI, Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Segoe UI, Arial;
 }
+
+.hidden{display:none}
 
 .layout{
   display:grid;
@@ -29,15 +32,30 @@ body{
   min-height:100vh;
 }
 
-/* MENU LATERAL */
+/* LOGIN */
+.login{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+
+.login-box{
+  background:var(--card);
+  padding:30px;
+  border-radius:16px;
+  width:320px;
+}
+
+.login-box h2{text-align:center}
+
+/* MENU */
 .menu{
   background:#0a0f1e;
   padding:20px;
 }
 
-.menu h2{
-  color:var(--primaria);
-}
+.menu h2{color:var(--primary)}
 
 .menu button{
   width:100%;
@@ -46,30 +64,25 @@ body{
   border:none;
   border-radius:8px;
   background:#1f2937;
-  color:var(--texto);
+  color:var(--text);
   cursor:pointer;
 }
 
-.menu button:hover{
-  background:#374151;
-}
+.menu button:hover{background:#374151}
 
 /* CONTEÚDO */
-.conteudo{
-  padding:30px;
-}
+.main{padding:25px}
 
-.cartao{
-  background:linear-gradient(145deg,#111827,#0f172a);
-  padding:20px;
-  border-radius:16px;
-  margin-bottom:20px;
-}
-
-.cartoes{
+.cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:15px;
+}
+
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:16px;
 }
 
 input,select,button{
@@ -80,204 +93,227 @@ input,select,button{
   margin-top:8px;
 }
 
-.botao-primario{
-  background:var(--primaria);
-  color:white;
-  cursor:pointer;
-}
+button.primary{background:var(--primary);color:white}
+button.red{background:var(--red);color:white}
+button.green{background:var(--green);color:white}
 
-.botao-perigo{
-  background:#ef4444;
-  color:white;
-  margin-top:10px;
-}
+.valor{font-size:26px;font-weight:bold}
 
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top:10px;
+  margin-top:15px;
 }
 
 th,td{
-  padding:8px;
-  border-bottom:1px solid #374151;
+  padding:10px;
+  border-bottom:1px solid #1f2937;
   text-align:left;
 }
-
-.oculto{display:none}
+th{color:var(--muted)}
 </style>
 </head>
 
 <body>
-<div class="layout">
 
-<aside class="menu">
-  <h2>Vendas</h2>
-  <button onclick="mostrarTela('painel')">Painel</button>
-  <button onclick="mostrarTela('historico')">Histórico de vendas</button>
-  <button onclick="mostrarTela('anual')">Relatório anual</button>
-</aside>
-
-<main class="conteudo">
-
-<!-- PAINEL -->
-<div id="painel">
-  <div class="cartao">
-    <h3>Meta do mês (R$)</h3>
-    <input id="meta" placeholder="Ex: 15000">
-    <button class="botao-primario" onclick="salvarMeta()">Salvar meta</button>
-  </div>
-
-  <div class="cartao">
-    <h3>Nova venda</h3>
-    <input id="venda" placeholder="Ex: 2.090,00">
-    <select id="percentual">
-      <option value="6">6%</option>
-      <option value="5">5%</option>
-      <option value="4">4%</option>
-      <option value="3">3%</option>
-    </select>
-    <button class="botao-primario" onclick="adicionarVenda()">Adicionar venda</button>
-  </div>
-
-  <div class="cartoes">
-    <div class="cartao"><h4>Meta</h4><h2 id="valorMeta">R$ 0,00</h2></div>
-    <div class="cartao"><h4>Total vendido</h4><h2 id="totalVendido">R$ 0,00</h2></div>
-    <div class="cartao"><h4>Falta para meta</h4><h2 id="faltaMeta">R$ 0,00</h2></div>
-    <div class="cartao"><h4>Comissão total</h4><h2 id="totalComissao" style="color:var(--sucesso)">R$ 0,00</h2></div>
+<!-- LOGIN -->
+<div id="telaLogin" class="login">
+  <div class="login-box">
+    <h2>Acesso ao Painel</h2>
+    <input id="loginUsuario" placeholder="Usuário">
+    <input id="loginSenha" type="password" placeholder="Senha">
+    <button class="primary" onclick="entrar()">Entrar</button>
+    <p id="loginErro" style="color:var(--red);text-align:center"></p>
   </div>
 </div>
 
-<!-- HISTÓRICO -->
-<div id="historico" class="oculto">
-  <div class="cartao">
-    <h3>Histórico de vendas (mês atual)</h3>
-    <table>
-      <thead>
-        <tr><th>Data</th><th>Valor</th><th>%</th><th>Comissão</th></tr>
-      </thead>
-      <tbody id="listaVendas"></tbody>
-    </table>
-    <button class="botao-perigo" onclick="limparMes()">Limpar mês atual</button>
-  </div>
-</div>
+<!-- SISTEMA -->
+<div id="sistema" class="layout hidden">
 
-<!-- RELATÓRIO ANUAL -->
-<div id="anual" class="oculto">
-  <div class="cartao">
-    <h3>Relatório anual</h3>
-    <table>
-      <thead>
-        <tr><th>Mês</th><th>Total vendido</th><th>Comissão</th></tr>
-      </thead>
-      <tbody id="relatorioAnual"></tbody>
-    </table>
-  </div>
-</div>
+  <aside class="menu">
+    <h2>Vendas</h2>
+    <button onclick="mostrar('painel')">Painel</button>
+    <button onclick="mostrar('historico')">Histórico</button>
+    <button onclick="mostrar('anual')">Relatório anual</button>
+    <button class="red" onclick="sair()">Sair</button>
+  </aside>
 
-</main>
+  <main class="main">
+
+    <!-- PAINEL -->
+    <div id="painel">
+      <div class="cards">
+        <div class="card">
+          <h4>Meta do mês</h4>
+          <input id="metaInput">
+          <button class="primary" onclick="salvarMeta()">Salvar meta</button>
+        </div>
+
+        <div class="card">
+          <h4>Nova venda</h4>
+          <input id="vendaInput">
+          <select id="percentual">
+            <option value="6">6%</option>
+            <option value="5">5%</option>
+            <option value="4">4%</option>
+            <option value="3">3%</option>
+          </select>
+          <button class="primary" onclick="adicionarVenda()">Adicionar</button>
+        </div>
+      </div>
+
+      <div class="cards" style="margin-top:20px">
+        <div class="card"><h4>Meta</h4><div id="metaValor" class="valor">R$ 0,00</div></div>
+        <div class="card"><h4>Total vendido</h4><div id="totalVendido" class="valor">R$ 0,00</div></div>
+        <div class="card"><h4>Falta para meta</h4><div id="faltaMeta" class="valor">R$ 0,00</div></div>
+        <div class="card"><h4>Comissão</h4><div id="totalComissao" class="valor" style="color:var(--green)">R$ 0,00</div></div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        👁️ Visitantes do painel: <b id="visitantes">0</b>
+      </div>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div id="historico" class="hidden">
+      <div class="card">
+        <h3>Histórico de vendas</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th><th>Valor</th><th>%</th><th>Comissão</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="listaVendas"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ANUAL -->
+    <div id="anual" class="hidden">
+      <div class="card">
+        <h3>Relatório anual</h3>
+        <table>
+          <thead>
+            <tr><th>Mês</th><th>Total vendido</th><th>Comissão</th></tr>
+          </thead>
+          <tbody id="relatorioAnual"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
 </div>
 
 <script>
-function converterValor(v){
-  if(!v) return 0;
-  return Number(v.replace(/\./g,"").replace(",","."));
+// ===== LOGIN =====
+const USUARIO_HASH = "admin";
+const SENHA_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; // 1234
+
+async function sha256(msg){
+  const buf = new TextEncoder().encode(msg);
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 
-const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-
-let dados = JSON.parse(localStorage.getItem("controleVendas")) || {
-  meta:0,
-  vendas:[]
-};
-
-function salvarDados(){
-  localStorage.setItem("controleVendas",JSON.stringify(dados));
+async function entrar(){
+  const u = loginUsuario.value;
+  const s = await sha256(loginSenha.value);
+  if(u===USUARIO_HASH && s===SENHA_HASH){
+    localStorage.setItem("sessao","ativa");
+    iniciar();
+  } else {
+    loginErro.innerText="Usuário ou senha inválidos";
+  }
 }
+
+function sair(){
+  localStorage.removeItem("sessao");
+  location.reload();
+}
+
+// ===== SISTEMA =====
+let dados = JSON.parse(localStorage.getItem("dadosVendas")) || {meta:0,vendas:[]};
+
+function salvar(){localStorage.setItem("dadosVendas",JSON.stringify(dados));}
+
+function parseValor(v){return Number(v.replace(/\./g,"").replace(",",".")||0);}
+function moeda(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
 
 function salvarMeta(){
-  dados.meta = converterValor(meta.value);
-  salvarDados();
-  atualizarTela();
+  dados.meta=parseValor(metaInput.value);
+  salvar();atualizar();
 }
 
 function adicionarVenda(){
-  const valor = converterValor(venda.value);
-  if(valor<=0) return alert("Digite um valor de venda válido.");
-
-  const perc = Number(percentual.value);
-  const com = valor * perc / 100;
-
+  const valor=parseValor(vendaInput.value);
+  if(valor<=0)return alert("Valor inválido");
+  const p=Number(percentual.value);
   dados.vendas.push({
     data:new Date().toLocaleDateString("pt-BR"),
-    mes:new Date().getMonth(),
-    valor, perc, com
+    valor,perc:p,com:valor*p/100
   });
-
-  venda.value="";
-  salvarDados();
-  atualizarTela();
+  salvar();vendaInput.value="";atualizar();
 }
 
-function atualizarTela(){
-  valorMeta.innerText = dados.meta.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+function removerVenda(i){
+  dados.vendas.splice(i,1);
+  salvar();atualizar();
+}
 
-  const mesAtual = new Date().getMonth();
-  const vendasMes = dados.vendas.filter(v=>v.mes===mesAtual);
-
-  const total = vendasMes.reduce((s,v)=>s+v.valor,0);
-  const com = vendasMes.reduce((s,v)=>s+v.com,0);
-
-  totalVendido.innerText = total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  totalComissao.innerText = com.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-
-  faltaMeta.innerText = Math.max(dados.meta-total,0)
-    .toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+function atualizar(){
+  const total=dados.vendas.reduce((s,v)=>s+v.valor,0);
+  const com=dados.vendas.reduce((s,v)=>s+v.com,0);
+  metaValor.innerText=moeda(dados.meta);
+  totalVendido.innerText=moeda(total);
+  totalComissao.innerText=moeda(com);
+  faltaMeta.innerText=moeda(Math.max(dados.meta-total,0));
 
   listaVendas.innerHTML="";
-  vendasMes.forEach(v=>{
+  dados.vendas.forEach((v,i)=>{
     listaVendas.innerHTML+=`
       <tr>
         <td>${v.data}</td>
-        <td>${v.valor.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
+        <td>${moeda(v.valor)}</td>
         <td>${v.perc}%</td>
-        <td>${v.com.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
+        <td>${moeda(v.com)}</td>
+        <td><button class="red" onclick="removerVenda(${i})">Excluir</button></td>
       </tr>`;
   });
 
   const anual={};
   dados.vendas.forEach(v=>{
-    anual[v.mes]=anual[v.mes]||{v:0,c:0};
-    anual[v.mes].v+=v.valor;
-    anual[v.mes].c+=v.com;
+    const m=v.data.split("/")[1];
+    anual[m]=anual[m]||{v:0,c:0};
+    anual[m].v+=v.valor;
+    anual[m].c+=v.com;
   });
-
   relatorioAnual.innerHTML="";
   Object.keys(anual).forEach(m=>{
     relatorioAnual.innerHTML+=`
-      <tr>
-        <td>${meses[m]}</td>
-        <td>${anual[m].v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
-        <td>${anual[m].c.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
-      </tr>`;
+      <tr><td>${m}</td><td>${moeda(anual[m].v)}</td><td>${moeda(anual[m].c)}</td></tr>`;
   });
 }
 
-function limparMes(){
-  const m = new Date().getMonth();
-  dados.vendas = dados.vendas.filter(v=>v.mes!==m);
-  salvarDados();
-  atualizarTela();
+function mostrar(id){
+  painel.classList.add("hidden");
+  historico.classList.add("hidden");
+  anual.classList.add("hidden");
+  document.getElementById(id).classList.remove("hidden");
 }
 
-function mostrarTela(id){
-  painel.classList.add("oculto");
-  historico.classList.add("oculto");
-  anual.classList.add("oculto");
-  document.getElementById(id).classList.remove("oculto");
+// VISITANTES
+let vis = Number(localStorage.getItem("visitas")||0)+1;
+localStorage.setItem("visitas",vis);
+visitantes.innerText=vis;
+
+function iniciar(){
+  telaLogin.classList.add("hidden");
+  sistema.classList.remove("hidden");
+  atualizar();
 }
 
-atualizarTela();
+if(localStorage.getItem("sessao")==="ativa") iniciar();
 </script>
 
 </body>
