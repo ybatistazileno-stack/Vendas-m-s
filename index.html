@@ -111,8 +111,12 @@ h2{margin-top:10px}
 </div>
 
 <script>
-function parseValor(v){
-  return Number(v.replace(/\./g,"").replace(",","."));
+function parseValor(valor){
+  if(!valor) return 0;
+  valor = valor.toString().trim();
+  valor = valor.replace(/\./g,"");
+  valor = valor.replace(",",".");
+  return Number(valor);
 }
 
 let meta = parseValor(localStorage.getItem("meta") || "0");
