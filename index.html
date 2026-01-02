@@ -11,7 +11,6 @@
   --primary:#6366f1;
   --secondary:#22c55e;
   --text:#e5e7eb;
-  --muted:#9ca3af;
 }
 *{box-sizing:border-box}
 body{
@@ -57,7 +56,7 @@ button{
   color:white;
   cursor:pointer;
 }
-h4{margin:0;color:var(--muted)}
+h4{margin:0}
 h2{margin-top:10px}
 </style>
 </head>
@@ -70,7 +69,6 @@ h2{margin-top:10px}
   <ul>
     <li>Dashboard</li>
     <li>Vendas</li>
-    <li>Comissões</li>
     <li>Meta</li>
   </ul>
 </aside>
@@ -85,7 +83,7 @@ h2{margin-top:10px}
   </div>
 
   <div class="card">
-    <h4>Nova venda</h4>
+    <h4>Valor da venda (R$)</h4>
     <input id="venda" placeholder="Ex: 2090">
     <select id="percentual">
       <option value="6">6%</option>
@@ -101,8 +99,9 @@ h2{margin-top:10px}
   <div class="card"><h4>Meta</h4><h2 id="metaValor">R$ 0,00</h2></div>
   <div class="card"><h4>Total vendido</h4><h2 id="totalVendido">R$ 0,00</h2></div>
   <div class="card"><h4>Falta p/ meta</h4><h2 id="faltaMeta">R$ 0,00</h2></div>
-  <div class="card"><h4>Minha comissão</h4>
-    <h2 id="totalComissao" style="color:var(--secondary)">R$ 0,00</h2>
+  <div class="card">
+    <h4>Comissão desta venda</h4>
+    <h2 id="comissao" style="color:var(--secondary)">R$ 0,00</h2>
   </div>
 </div>
 
@@ -111,30 +110,32 @@ h2{margin-top:10px}
 
 <script>
 let totalVendido = 0;
-let totalComissao = 0;
 
 function adicionarVenda(){
+  const meta = Number(document.getElementById("meta").value) || 0;
   const venda = Number(document.getElementById("venda").value);
   const percentual = Number(document.getElementById("percentual").value);
-  const meta = Number(document.getElementById("meta").value);
 
-  if(isNaN(venda) || venda <= 0){
-    alert("Digite um valor válido");
+  if(venda <= 0){
+    alert("Digite um valor de venda válido");
     return;
   }
 
-  const comissao = venda * (percentual/100);
-
   totalVendido += venda;
-  totalComissao += comissao;
+  const comissao = venda * (percentual/100);
+  const falta = meta - totalVendido;
 
-  document.getElementById("metaValor").innerText = "R$ " + (meta || 0).toFixed(2);
-  document.getElementById("totalVendido").innerText = "R$ " + totalVendido.toFixed(2);
-  document.getElementById("totalComissao").innerText = "R$ " + totalComissao.toFixed(2);
+  document.getElementById("metaValor").innerText =
+    "R$ " + meta.toFixed(2);
 
-  const falta = (meta || 0) - totalVendido;
+  document.getElementById("totalVendido").innerText =
+    "R$ " + totalVendido.toFixed(2);
+
   document.getElementById("faltaMeta").innerText =
     "R$ " + (falta > 0 ? falta.toFixed(2) : "0.00");
+
+  document.getElementById("comissao").innerText =
+    "R$ " + comissao.toFixed(2);
 
   document.getElementById("venda").value = "";
 }
