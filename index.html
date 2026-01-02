@@ -3,16 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <title>Controle de Vendas</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+:root{
+  --bg:#0b1020;
+  --card:#111827;
+  --primary:#6366f1;
+  --green:#22c55e;
+  --red:#ef4444;
+  --text:#e5e7eb;
+}
+*{box-sizing:border-box}
 body{
   margin:0;
   font-family:Segoe UI, Arial;
-  background:#0b1020;
-  color:#fff;
+  background:var(--bg);
+  color:var(--text);
 }
+.hidden{display:none}
+.container{max-width:1200px;margin:auto;padding:20px}
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:16px;
+  margin-bottom:20px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:15px;
+}
+input,select,button{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin-top:8px;
+}
+button{
+  background:var(--primary);
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+button.red{background:var(--red)}
+.valor{font-size:24px}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  padding:8px;
+  border-bottom:1px solid #1f2937;
+  text-align:center;
+}
+th{color:#9ca3af}
 
 /* LOGIN */
 #login{
@@ -22,54 +69,27 @@ body{
   align-items:center;
 }
 .login-box{
-  background:#111827;
+  background:var(--card);
   padding:30px;
-  border-radius:15px;
+  border-radius:16px;
   width:320px;
 }
-.login-box h2{text-align:center}
-input,select,button{
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:none;
-  margin-top:10px;
-}
-button{
-  background:#6366f1;
-  color:#fff;
-  font-weight:bold;
-  cursor:pointer;
-}
 
-/* SISTEMA */
-#sistema{display:none}
-.container{max-width:1100px;margin:auto;padding:20px}
-.card{
-  background:#111827;
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.modal-box{
+  background:var(--card);
   padding:20px;
-  border-radius:15px;
-  margin-bottom:20px;
+  border-radius:16px;
+  width:300px;
 }
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:15px;
-}
-.logout{
-  background:#ef4444;
-  margin-top:10px;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  padding:8px;
-  border-bottom:1px solid #333;
-  text-align:center;
-}
-th{color:#9ca3af}
 </style>
 </head>
 
@@ -79,68 +99,117 @@ th{color:#9ca3af}
 <div id="login">
   <div class="login-box">
     <h2>Login</h2>
+
     <input id="loginUser" placeholder="Usuário">
-    <input id="loginPass" type="password" placeholder="Senha">
-    <button onclick="login()">Entrar</button>
+
+    <div style="position:relative">
+      <input 
+        id="loginPass" 
+        type="password" 
+        placeholder="Senha"
+        onkeyup="verificarCaps(event)"
+      >
+      <span onclick="toggleSenha()"
+        style="
+          position:absolute;
+          right:12px;
+          top:50%;
+          transform:translateY(-50%);
+          cursor:pointer;
+          font-size:18px;
+        "
+      >👁️</span>
+    </div>
+
+    <small id="capsMsg" style="display:none;color:#facc15;font-size:12px">
+      ⚠️ Caps Lock ativado
+    </small>
+
+    <button onclick="entrar()">Entrar</button>
   </div>
 </div>
 
 <!-- SISTEMA -->
-<div id="sistema">
-  <div class="container">
+<div id="sistema" class="hidden">
+<div class="container">
 
-    <div class="card">
-      <h2>Painel de Vendas</h2>
-      <p>Usuário: <b id="userInfo"></b></p>
-      <button class="logout" onclick="logout()">Sair</button>
-    </div>
+<div class="card">
+  <h2>Painel de Vendas</h2>
+  <p>Usuário: <b id="infoUser"></b></p>
+  <button class="red" onclick="sair()">Sair</button>
+</div>
 
-    <div class="grid">
-      <div class="card">
-        <h3>Meta do mês</h3>
-        <input id="metaInput" type="number" placeholder="Ex: 15000">
-        <button onclick="salvarMeta()" id="btnMeta">Salvar meta</button>
-      </div>
+<div id="adminArea">
 
-      <div class="card">
-        <h3>Nova venda</h3>
-        <input id="vendaInput" placeholder="Ex: 2090.00">
-        <select id="percentual">
-          <option value="6">6%</option>
-          <option value="5">5%</option>
-          <option value="4">4%</option>
-        </select>
-        <button onclick="adicionarVenda()" id="btnVenda">Adicionar venda</button>
-      </div>
-    </div>
+<div class="grid">
+  <div class="card">
+    <h3>Meta do mês</h3>
+    <input id="metaInput">
+    <button onclick="salvarMeta()">Salvar meta</button>
+  </div>
 
-    <div class="grid">
-      <div class="card">Meta<br><b>R$ <span id="meta">0.00</span></b></div>
-      <div class="card">Total vendido<br><b>R$ <span id="total">0.00</span></b></div>
-      <div class="card">Comissão<br><b style="color:#22c55e">R$ <span id="comissao">0.00</span></b></div>
-    </div>
+  <div class="card">
+    <h3>Nova venda</h3>
+    <input id="vendaInput" placeholder="Ex: 2.090,00">
+    <select id="percentual">
+      <option value="6">6%</option>
+      <option value="5">5%</option>
+      <option value="4">4%</option>
+    </select>
+    <button onclick="adicionarVenda()">Adicionar</button>
+  </div>
+</div>
 
-    <div class="card">
-      <h3>Gráfico mensal de vendas</h3>
-      <canvas id="grafico"></canvas>
-    </div>
+</div>
 
-    <div class="card">
-      <h3>Histórico de vendas</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Venda</th>
-            <th>%</th>
-            <th>Comissão</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-        <tbody id="lista"></tbody>
-      </table>
-    </div>
+<div class="grid">
+  <div class="card">Meta<br><b id="meta" class="valor">R$ 0,00</b></div>
+  <div class="card">Total vendido<br><b id="total" class="valor">R$ 0,00</b></div>
+  <div class="card">Falta para meta<br><b id="falta" class="valor">R$ 0,00</b></div>
+  <div class="card">Comissão<br><b id="comissao" class="valor" style="color:var(--green)">R$ 0,00</b></div>
+</div>
 
+<div class="card">
+  <h3>Gráfico mensal</h3>
+  <canvas id="graficoMensal"></canvas>
+</div>
+
+<div class="card">
+  <h3>Histórico de vendas</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Venda</th>
+        <th>%</th>
+        <th>Comissão</th>
+        <th id="acaoCol">Ação</th>
+      </tr>
+    </thead>
+    <tbody id="lista"></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Relatório anual</h3>
+  <canvas id="graficoAnual"></canvas>
+</div>
+
+</div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal hidden">
+  <div class="modal-box">
+    <h3>Editar venda</h3>
+    <input id="editValor">
+    <select id="editPerc">
+      <option value="6">6%</option>
+      <option value="5">5%</option>
+      <option value="4">4%</option>
+    </select>
+    <button onclick="salvarEdicao()">Salvar</button>
+    <button class="red" onclick="fecharModal()">Cancelar</button>
   </div>
 </div>
 
@@ -150,122 +219,127 @@ const usuarios={
   visitante:{senha:"123456",tipo:"visitante"}
 };
 
-let dados=JSON.parse(localStorage.getItem("dados"))||{
-  meta:0,
-  vendas:[],
-  usuario:null
+let dados=JSON.parse(localStorage.getItem("dadosVendas"))||{
+  meta:0,vendas:[],usuario:null
 };
 
-let chart;
+let editIndex=null,chartMensal,chartAnual;
 
-function login(){
-  const u=loginUser.value;
-  const s=loginPass.value;
-  if(!usuarios[u]||usuarios[u].senha!==s){
-    alert("Login inválido");
-    return;
-  }
+function salvar(){localStorage.setItem("dadosVendas",JSON.stringify(dados));}
+
+function toggleSenha(){
+  const campo=document.getElementById("loginPass");
+  campo.type=campo.type==="password"?"text":"password";
+}
+
+function verificarCaps(e){
+  document.getElementById("capsMsg").style.display=
+    e.getModifierState("CapsLock")?"block":"none";
+}
+
+function entrar(){
+  const u=loginUser.value,s=loginPass.value;
+  if(!usuarios[u]||usuarios[u].senha!==s){alert("Login inválido");return;}
   dados.usuario={nome:u,tipo:usuarios[u].tipo};
-  salvar();
-  iniciar();
+  salvar();iniciar();
 }
 
-function logout(){
-  dados.usuario=null;
-  salvar();
-  location.reload();
-}
-
-function salvar(){
-  localStorage.setItem("dados",JSON.stringify(dados));
+function sair(){
+  dados.usuario=null;salvar();location.reload();
 }
 
 function iniciar(){
-  login.style.display="none";
-  sistema.style.display="block";
-  userInfo.innerText=dados.usuario.nome+" ("+dados.usuario.tipo+")";
-  atualizar();
+  login.classList.add("hidden");
+  sistema.classList.remove("hidden");
+  infoUser.innerText=dados.usuario.nome+" ("+dados.usuario.tipo+")";
   if(dados.usuario.tipo!=="admin"){
-    btnMeta.disabled=true;
-    btnVenda.disabled=true;
+    adminArea.style.display="none";
+    document.getElementById("acaoCol").style.display="none";
   }
+  atualizar();
 }
+
+function num(v){return Number(v.replace(/\./g,"").replace(",",".")||0);}
+function moeda(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
 
 function salvarMeta(){
   if(dados.usuario.tipo!=="admin")return;
-  dados.meta=Number(metaInput.value);
-  salvar();
-  atualizar();
+  dados.meta=num(metaInput.value);salvar();atualizar();
 }
 
 function adicionarVenda(){
   if(dados.usuario.tipo!=="admin")return;
-  const v=Number(vendaInput.value.replace(",",".")); 
-  if(v<=0)return;
+  const v=num(vendaInput.value);if(v<=0)return;
   const p=Number(percentual.value);
   dados.vendas.push({
     data:new Date().toLocaleDateString("pt-BR"),
-    valor:v,
-    perc:p,
-    com:v*p/100
+    valor:v,perc:p,com:v*p/100
   });
-  salvar();
-  vendaInput.value="";
-  atualizar();
+  vendaInput.value="";salvar();atualizar();
 }
 
-function atualizar(){
-  meta.innerText=dados.meta.toFixed(2);
-  let total=0,com=0;
-  lista.innerHTML="";
-  const labels=[];
-  const valores=[];
-  dados.vendas.forEach((v,i)=>{
-    total+=v.valor; com+=v.com;
-    labels.push(v.data);
-    valores.push(v.valor);
-    lista.innerHTML+=`
-      <tr>
-        <td>${v.data}</td>
-        <td>R$ ${v.valor.toFixed(2)}</td>
-        <td>${v.perc}%</td>
-        <td>R$ ${v.com.toFixed(2)}</td>
-        <td>${dados.usuario.tipo==="admin"?
-          `<button onclick="excluir(${i})">X</button>`:""}
-        </td>
-      </tr>`;
-  });
-  total.innerText=total.toFixed(2);
-  comissao.innerText=com.toFixed(2);
-  grafico(labels,valores);
+function abrirEditar(i){
+  editIndex=i;
+  editValor.value=dados.vendas[i].valor;
+  editPerc.value=dados.vendas[i].perc;
+  modal.classList.remove("hidden");
 }
+
+function salvarEdicao(){
+  const v=num(editValor.value),p=Number(editPerc.value);
+  dados.vendas[editIndex].valor=v;
+  dados.vendas[editIndex].perc=p;
+  dados.vendas[editIndex].com=v*p/100;
+  fecharModal();salvar();atualizar();
+}
+
+function fecharModal(){modal.classList.add("hidden");}
 
 function excluir(i){
   if(dados.usuario.tipo!=="admin")return;
-  dados.vendas.splice(i,1);
-  salvar();
-  atualizar();
+  dados.vendas.splice(i,1);salvar();atualizar();
 }
 
-function grafico(labels,valores){
-  if(chart)chart.destroy();
-  chart=new Chart(document.getElementById("grafico"),{
+function atualizar(){
+  meta.innerText=moeda(dados.meta);
+  let totalV=0,totalC=0,mes={},ano={};
+  lista.innerHTML="";
+  dados.vendas.forEach((v,i)=>{
+    totalV+=v.valor;totalC+=v.com;
+    lista.innerHTML+=`
+      <tr>
+        <td>${v.data}</td>
+        <td>${moeda(v.valor)}</td>
+        <td>${v.perc}%</td>
+        <td>${moeda(v.com)}</td>
+        ${dados.usuario.tipo==="admin"?
+        `<td>
+          <button onclick="abrirEditar(${i})">✏️</button>
+          <button class="red" onclick="excluir(${i})">🗑️</button>
+        </td>`:""}
+      </tr>`;
+    mes[v.data]=(mes[v.data]||0)+v.valor;
+    const m=v.data.split("/")[1];
+    ano[m]=(ano[m]||0)+v.valor;
+  });
+  total.innerText=moeda(totalV);
+  comissao.innerText=moeda(totalC);
+  falta.innerText=moeda(Math.max(dados.meta-totalV,0));
+
+  if(chartMensal)chartMensal.destroy();
+  chartMensal=new Chart(graficoMensal,{
     type:"line",
-    data:{
-      labels,
-      datasets:[{
-        label:"Vendas",
-        data:valores,
-        borderColor:"#6366f1",
-        backgroundColor:"rgba(99,102,241,.2)",
-        tension:.4,
-        fill:true
-      }]
-    },
-    options:{
-      responsive:true,
-      plugins:{legend:{display:false}}
-    }
+    data:{labels:Object.keys(mes),
+    datasets:[{data:Object.values(mes),borderColor:"#6366f1",backgroundColor:"rgba(99,102,241,.3)",fill:true}]},
+    options:{plugins:{legend:{display:false}}}
+  });
+
+  if(chartAnual)chartAnual.destroy();
+  chartAnual=new Chart(graficoAnual,{
+    type:"bar",
+    data:{labels:Object.keys(ano),
+    datasets:[{data:Object.values(ano),backgroundColor:"#22c55e"}]},
+    options:{plugins:{legend:{display:false}}}
   });
 }
 
