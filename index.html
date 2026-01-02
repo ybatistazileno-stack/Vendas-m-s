@@ -8,89 +8,58 @@
 :root{
   --bg:#0b1020;
   --card:#111827;
-  --card2:#0f172a;
   --primary:#6366f1;
   --secondary:#22c55e;
   --text:#e5e7eb;
   --muted:#9ca3af;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
   background:var(--bg);
   color:var(--text);
-  font-family:Segoe UI, Inter, Arial;
+  font-family:Segoe UI, Arial;
 }
-
 .layout{
   display:grid;
-  grid-template-columns:240px 1fr;
+  grid-template-columns:220px 1fr;
   min-height:100vh;
 }
-
 .sidebar{
   background:#0a0f1e;
-  padding:25px;
+  padding:20px;
 }
-
 .sidebar h2{color:var(--primary)}
 .sidebar ul{list-style:none;padding:0}
-.sidebar li{
-  padding:12px;
-  margin:8px 0;
-  border-radius:10px;
-}
+.sidebar li{padding:10px;border-radius:8px}
 .sidebar li:hover{background:#1f2937}
-
 .main{padding:30px}
-
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:30px;
-}
-
-.search{
-  background:var(--card);
-  padding:10px 15px;
-  border-radius:12px;
-  width:300px;
-}
-
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:20px;
   margin-top:20px;
 }
-
 .card{
   background:linear-gradient(145deg,#111827,#0f172a);
   padding:20px;
   border-radius:18px;
 }
-
-.card h4{margin:0;color:var(--muted)}
-.card h2{margin-top:10px}
-
-.graph{
-  margin-top:30px;
-  background:linear-gradient(145deg,#111827,#0f172a);
-  border-radius:20px;
-  padding:25px;
-  height:260px;
+input,select,button{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  margin-top:8px;
 }
-
-.fake-line{
-  margin-top:40px;
-  height:120px;
-  background:linear-gradient(90deg,var(--primary),#9333ea);
-  border-radius:100px;
-  opacity:.3;
+button{
+  background:var(--primary);
+  color:white;
+  cursor:pointer;
 }
+button:hover{opacity:.9}
+h4{margin:0;color:var(--muted)}
+h2{margin-top:10px}
 </style>
 </head>
 
@@ -108,34 +77,24 @@ body{
 </aside>
 
 <main class="main">
-
-<div class="header">
-  <h1>Dashboard</h1>
-  <div class="search">🔍 Buscar</div>
-</div>
+<h1>Dashboard</h1>
 
 <div class="cards">
   <div class="card">
     <h4>Meta do mês (R$)</h4>
-    <input id="meta" type="number" placeholder="Ex: 15000"
-      style="width:100%;padding:10px;border-radius:10px;border:none;">
+    <input id="meta" placeholder="Ex: 145.000">
   </div>
 
   <div class="card">
     <h4>Nova venda</h4>
-    <input id="venda" type="number" placeholder="Valor da venda"
-      style="width:100%;padding:10px;border-radius:10px;border:none;margin-bottom:10px;">
-    <select id="percentual" style="width:100%;padding:10px;border-radius:10px;">
+    <input id="venda" placeholder="Ex: 2.090">
+    <select id="percentual">
       <option value="6">6%</option>
       <option value="5">5%</option>
       <option value="4">4%</option>
       <option value="3">3%</option>
     </select>
-    <button onclick="adicionarVenda()"
-      style="margin-top:10px;width:100%;padding:10px;border-radius:10px;
-      background:#6366f1;color:white;border:none;">
-      Adicionar venda
-    </button>
+    <button type="button" onclick="adicionarVenda()">Adicionar venda</button>
   </div>
 </div>
 
@@ -148,16 +107,15 @@ body{
   </div>
 </div>
 
-<div class="graph">
-  <h3>Evolução de vendas</h3>
-  <div class="fake-line"></div>
-</div>
-
 </main>
 </div>
 
 <script>
-let meta = Number(localStorage.getItem("meta")) || 0;
+function parseValor(v){
+  return Number(v.replace(/\./g,"").replace(",","."));
+}
+
+let meta = parseValor(localStorage.getItem("meta") || "0");
 let vendas = JSON.parse(localStorage.getItem("vendas")) || [];
 
 function atualizar(){
@@ -175,25 +133,34 @@ function atualizar(){
 }
 
 function adicionarVenda(){
-  const valor = Number(document.getElementById("venda").value);
+  const valor = parseValor(document.getElementById("venda").value);
   const perc = Number(document.getElementById("percentual").value);
-  if(valor <= 0) return;
 
-  vendas.push({valor, comissao: valor*(perc/100)});
-  document.getElementById("venda").value="";
+  if(isNaN(valor) || valor <= 0){
+    alert("Digite um valor válido");
+    return;
+  }
+
+  vendas.push({
+    valor: valor,
+    comissao: valor * (perc/100)
+  });
+
+  document.getElementById("venda").value = "";
   atualizar();
 }
 
-document.getElementById("meta").addEventListener("change", e=>{
-  meta = Number(e.target.value);
+document.getElementById("meta").addEventListener("input", e=>{
+  meta = parseValor(e.target.value || "0");
   atualizar();
 });
 
-document.getElementById("meta").value = meta;
+document.getElementById("meta").value = meta || "";
 atualizar();
 </script>
 
 </body>
 </html>
+
 
 
