@@ -4,16 +4,15 @@
 <meta charset="UTF-8">
 <title>Controle de Vendas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root{
   --bg:#0b1020;
   --card:#111827;
   --primary:#6366f1;
+  --text:#e5e7eb;
   --green:#22c55e;
   --red:#ef4444;
-  --text:#e5e7eb;
 }
 
 *{box-sizing:border-box;font-family:Segoe UI,Arial}
@@ -25,47 +24,74 @@ body{
 }
 
 /* LOGIN */
-#login{
+#loginBox{
   min-height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
 }
 
-.login-box{
+.login-card{
   background:var(--card);
   padding:30px;
   border-radius:16px;
-  width:320px;
+  width:100%;
+  max-width:360px;
+  box-shadow:0 20px 40px rgba(0,0,0,.5);
 }
 
-.login-box h2{text-align:center}
+.login-card h2{
+  text-align:center;
+  margin-bottom:20px;
+}
 
-.login-box input{
+.login-card input{
   width:100%;
-  padding:10px;
-  margin:10px 0;
+  padding:12px;
   border-radius:10px;
   border:none;
+  margin-bottom:12px;
 }
 
-.eye{
+.password{
+  position:relative;
+}
+
+.password span{
   position:absolute;
-  right:15px;
+  right:12px;
   top:50%;
   transform:translateY(-50%);
   cursor:pointer;
 }
 
-small{color:#facc15;display:none}
+.login-card button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  margin-top:8px;
+  cursor:pointer;
+}
 
-/* APP */
+.btn{
+  background:var(--primary);
+  color:#fff;
+}
+
+.btn-visitor{
+  background:#1f2937;
+  color:#ccc;
+}
+
+/* DASHBOARD */
 #app{display:none;padding:20px}
 
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
   gap:15px;
+  margin-top:20px;
 }
 
 .card{
@@ -74,68 +100,46 @@ small{color:#facc15;display:none}
   border-radius:16px;
 }
 
-button{
+.green{color:var(--green)}
+.red{color:var(--red)}
+
+input,select{
+  width:100%;
   padding:10px;
+  border-radius:8px;
   border:none;
-  border-radius:10px;
+}
+
+button.action{
+  margin-top:10px;
   background:var(--primary);
-  color:white;
+  color:#fff;
+  border:none;
+  padding:10px;
+  border-radius:8px;
   cursor:pointer;
 }
 
-.red{background:var(--red)}
-
-table{
-  width:100%;
-  margin-top:15px;
-  border-collapse:collapse;
-}
-
-td,th{
-  padding:8px;
-  border-bottom:1px solid #333;
-  text-align:center;
-}
-
-/* MODAL */
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.7);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.modal.hidden{display:none}
-
-.modal-box{
-  background:var(--card);
-  padding:20px;
-  border-radius:16px;
-  width:300px;
-}
+.hidden{display:none}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="login">
-  <div class="login-box">
+<div id="loginBox">
+  <div class="login-card">
     <h2>Login</h2>
 
     <input id="user" placeholder="Usuário">
 
-    <div style="position:relative">
-      <input id="pass" type="password" placeholder="Senha" onkeyup="caps(event)">
-      <span class="eye" onclick="toggle()">👁️</span>
+    <div class="password">
+      <input id="pass" type="password" placeholder="Senha">
+      <span onclick="togglePass()">👁️</span>
     </div>
 
-    <small id="caps">Caps Lock ativado</small>
-
-    <button onclick="entrar()">Entrar</button>
-    <button onclick="visitante()">Entrar como visitante</button>
+    <button class="btn" onclick="login()">Entrar</button>
+    <button class="btn-visitor" onclick="visitor()">Entrar como visitante</button>
   </div>
 </div>
 
@@ -143,147 +147,105 @@ td,th{
 <div id="app">
   <h1>Controle de Vendas</h1>
 
-  <div class="card" id="metaBox">
-    <input id="metaInput" placeholder="Meta do mês">
-    <button onclick="salvarMeta()">Salvar meta</button>
-  </div>
+  <div id="adminArea">
+    <h3>Meta do mês</h3>
+    <input id="metaInput" placeholder="Ex: 15000">
+    <button class="action" onclick="salvarMeta()">Salvar meta</button>
 
-  <div class="card" id="vendaBox">
-    <input id="valorVenda" placeholder="Valor da venda">
+    <h3 style="margin-top:20px">Nova venda</h3>
+    <input id="vendaInput" placeholder="Ex: 2090">
     <select id="perc">
       <option value="6">6%</option>
       <option value="5">5%</option>
       <option value="4">4%</option>
+      <option value="3">3%</option>
     </select>
-    <button onclick="addVenda()">Adicionar venda</button>
+    <button class="action" onclick="addVenda()">Adicionar venda</button>
   </div>
 
   <div class="cards">
-    <div class="card">Meta<br><b id="meta">R$ 0,00</b></div>
-    <div class="card">Total vendido<br><b id="total">R$ 0,00</b></div>
-    <div class="card">Falta para meta<br><b id="falta">R$ 0,00</b></div>
-    <div class="card">Comissão<br><b id="comissao" style="color:var(--green)">R$ 0,00</b></div>
-  </div>
-
-  <canvas id="grafico" height="120"></canvas>
-
-  <h3>Histórico de vendas</h3>
-  <table>
-    <thead>
-      <tr><th>Data</th><th>Valor</th><th>%</th><th>Comissão</th><th>Ação</th></tr>
-    </thead>
-    <tbody id="lista"></tbody>
-  </table>
-</div>
-
-<!-- MODAL -->
-<div id="modal" class="modal hidden" onclick="fecharModal(event)">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <h3>Editar venda</h3>
-    <input id="editValor">
-    <select id="editPerc">
-      <option value="6">6%</option>
-      <option value="5">5%</option>
-      <option value="4">4%</option>
-    </select>
-    <button onclick="salvarEdit()">Salvar</button>
-    <button class="red" onclick="fecharModal()">Cancelar</button>
+    <div class="card">
+      <h4>Meta</h4>
+      <b id="meta">R$ 0,00</b>
+    </div>
+    <div class="card">
+      <h4>Total vendido</h4>
+      <b id="total">R$ 0,00</b>
+    </div>
+    <div class="card">
+      <h4>Falta para meta</h4>
+      <b id="falta">R$ 0,00</b>
+    </div>
+    <div class="card">
+      <h4>Comissão</h4>
+      <b id="comissao" class="green">R$ 0,00</b>
+    </div>
   </div>
 </div>
 
 <script>
-const dados = JSON.parse(localStorage.getItem("dados")) || {meta:0,vendas:[]}
-let admin=false,editIndex=null,chart
+let role = "visitor";
+let meta = 0, total = 0, comissao = 0;
 
-function fmt(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
-function num(v){return Number(v.replace(/\./g,"").replace(",","."))}
-
-function entrar(){
-  if(user.value==="admin" && pass.value==="Admin@123"){
-    admin=true;iniciar()
-  }else alert("Login inválido")
+function fmt(v){
+  return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
-function visitante(){admin=false;iniciar()}
+function togglePass(){
+  const p = document.getElementById("pass");
+  p.type = p.type === "password" ? "text" : "password";
+}
 
-function iniciar(){
-  login.style.display="none"
-  app.style.display="block"
-  if(!admin){metaBox.remove();vendaBox.remove()}
-  atualizar()
+function login(){
+  const u = document.getElementById("user").value.trim();
+  const p = document.getElementById("pass").value.trim();
+
+  if(u === "admin" && p === "admin@123"){
+    role = "admin";
+    entrar();
+  }else{
+    alert("Login inválido");
+  }
+}
+
+function visitor(){
+  role = "visitor";
+  entrar();
+}
+
+function entrar(){
+  document.getElementById("loginBox").style.display="none";
+  document.getElementById("app").style.display="block";
+  if(role==="visitor"){
+    document.getElementById("adminArea").style.display="none";
+  }
+  atualizar();
 }
 
 function salvarMeta(){
-  dados.meta=num(metaInput.value)
-  salvar()
-  atualizar()
+  meta = Number(document.getElementById("metaInput").value.replace(",",".")) || 0;
+  atualizar();
 }
 
 function addVenda(){
-  const v=num(valorVenda.value)
-  if(v<=0)return alert("Valor inválido")
-  const p=+perc.value
-  dados.vendas.push({v,p,c:v*p/100,d:new Date().toLocaleDateString("pt-BR")})
-  salvar();atualizar()
+  const v = Number(document.getElementById("vendaInput").value.replace(",",".")) || 0;
+  const p = Number(document.getElementById("perc").value);
+  if(v<=0)return;
+  total += v;
+  comissao += v*p/100;
+  atualizar();
+  document.getElementById("vendaInput").value="";
 }
 
 function atualizar(){
-  meta.innerText=fmt(dados.meta)
-  const total=dados.vendas.reduce((s,x)=>s+x.v,0)
-  const com=dados.vendas.reduce((s,x)=>s+x.c,0)
-  totalVendido=total
-  totalEl.innerText=fmt(total)
-  comissao.innerText=fmt(com)
-  falta.innerText=fmt(Math.max(0,dados.meta-total))
-  lista.innerHTML=""
-  dados.vendas.forEach((x,i)=>{
-    lista.innerHTML+=`<tr>
-      <td>${x.d}</td><td>${fmt(x.v)}</td><td>${x.p}%</td><td>${fmt(x.c)}</td>
-      <td>${admin?`<button onclick="editar(${i})">✏️</button>`:""}</td>
-    </tr>`
-  })
-  graf()
-}
-
-function graf(){
-  const ctx=document.getElementById("grafico")
-  if(chart)chart.destroy()
-  chart=new Chart(ctx,{type:"line",
-    data:{labels:dados.vendas.map(x=>x.d),
-    datasets:[{label:"Vendas",data:dados.vendas.map(x=>x.v),borderColor:"#6366f1"}]}
-  })
-}
-
-function editar(i){
-  editIndex=i
-  editValor.value=fmt(dados.vendas[i].v)
-  editPerc.value=dados.vendas[i].p
-  modal.classList.remove("hidden")
-}
-
-function salvarEdit(){
-  const v=num(editValor.value),p=+editPerc.value
-  dados.vendas[editIndex]={...dados.vendas[editIndex],v,p,c:v*p/100}
-  salvar();fecharModal();atualizar()
-}
-
-function fecharModal(e){
-  if(e && e.target!==modal)return
-  modal.classList.add("hidden")
-  editIndex=null
-}
-
-function salvar(){localStorage.setItem("dados",JSON.stringify(dados))}
-
-function toggle(){
-  pass.type=pass.type==="password"?"text":"password"
-}
-
-function caps(e){
-  capsMsg.style.display=e.getModifierState("CapsLock")?"block":"none"
+  document.getElementById("meta").innerText = fmt(meta);
+  document.getElementById("total").innerText = fmt(total);
+  document.getElementById("comissao").innerText = fmt(comissao);
+  const f = meta-total;
+  document.getElementById("falta").innerText = fmt(f>0?f:0);
 }
 </script>
+
 </body>
 </html>
-
 
