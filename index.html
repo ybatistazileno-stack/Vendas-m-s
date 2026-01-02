@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <title>Controle de Vendas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root{
@@ -12,308 +15,219 @@
   --green:#22c55e;
   --red:#ef4444;
   --text:#e5e7eb;
-  --muted:#9ca3af;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
   background:var(--bg);
   color:var(--text);
   font-family:Segoe UI, Arial;
 }
-
 .hidden{display:none}
-
-.layout{
-  display:grid;
-  grid-template-columns:240px 1fr;
-  min-height:100vh;
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
 }
-
-/* LOGIN */
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:16px;
+  margin-bottom:20px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:15px;
+}
+input,select,button{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin-top:8px;
+}
+button{
+  background:var(--primary);
+  color:white;
+}
+.valor{font-size:24px}
+.green{color:var(--green)}
+.red{background:var(--red)}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  padding:10px;
+  border-bottom:1px solid #1f2937;
+  text-align:center;
+}
 .login{
+  height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
-  height:100vh;
 }
-
 .login-box{
   background:var(--card);
   padding:30px;
   border-radius:16px;
   width:320px;
 }
-
-.login-box h2{text-align:center}
-
-/* MENU */
-.menu{
-  background:#0a0f1e;
-  padding:20px;
+@media(max-width:600px){
+  table{font-size:13px}
 }
-
-.menu h2{color:var(--primary)}
-
-.menu button{
-  width:100%;
-  margin:6px 0;
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  background:#1f2937;
-  color:var(--text);
-  cursor:pointer;
-}
-
-.menu button:hover{background:#374151}
-
-/* CONTEÚDO */
-.main{padding:25px}
-
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px;
-}
-
-.card{
-  background:var(--card);
-  padding:20px;
-  border-radius:16px;
-}
-
-input,select,button{
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:none;
-  margin-top:8px;
-}
-
-button.primary{background:var(--primary);color:white}
-button.red{background:var(--red);color:white}
-button.green{background:var(--green);color:white}
-
-.valor{font-size:26px;font-weight:bold}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:15px;
-}
-
-th,td{
-  padding:10px;
-  border-bottom:1px solid #1f2937;
-  text-align:left;
-}
-th{color:var(--muted)}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="telaLogin" class="login">
+<div id="login" class="login">
   <div class="login-box">
-    <h2>Acesso ao Painel</h2>
-    <input id="loginUsuario" placeholder="Usuário">
-    <input id="loginSenha" type="password" placeholder="Senha">
-    <button class="primary" onclick="entrar()">Entrar</button>
-    <p id="loginErro" style="color:var(--red);text-align:center"></p>
+    <h2>Login</h2>
+    <input id="user" placeholder="Usuário">
+    <input id="pass" type="password" placeholder="Senha">
+    <button onclick="entrar()">Entrar</button>
+    <p id="erro" style="color:#ef4444"></p>
   </div>
 </div>
 
 <!-- SISTEMA -->
-<div id="sistema" class="layout hidden">
+<div id="sistema" class="hidden">
+<div class="container">
 
-  <aside class="menu">
-    <h2>Vendas</h2>
-    <button onclick="mostrar('painel')">Painel</button>
-    <button onclick="mostrar('historico')">Histórico</button>
-    <button onclick="mostrar('anual')">Relatório anual</button>
-    <button class="red" onclick="sair()">Sair</button>
-  </aside>
+<button class="red" onclick="sair()">Sair</button>
 
-  <main class="main">
+<div class="card">
+<h3>Meta do mês</h3>
+<input id="metaInput">
+<button onclick="salvarMeta()">Salvar meta</button>
+</div>
 
-    <!-- PAINEL -->
-    <div id="painel">
-      <div class="cards">
-        <div class="card">
-          <h4>Meta do mês</h4>
-          <input id="metaInput">
-          <button class="primary" onclick="salvarMeta()">Salvar meta</button>
-        </div>
+<div class="card">
+<h3>Nova venda</h3>
+<input id="vendaInput" placeholder="Ex: 2.090,00">
+<select id="percentual">
+<option value="6">6%</option>
+<option value="5">5%</option>
+<option value="4">4%</option>
+<option value="3">3%</option>
+</select>
+<button onclick="adicionarVenda()">Adicionar</button>
+</div>
 
-        <div class="card">
-          <h4>Nova venda</h4>
-          <input id="vendaInput">
-          <select id="percentual">
-            <option value="6">6%</option>
-            <option value="5">5%</option>
-            <option value="4">4%</option>
-            <option value="3">3%</option>
-          </select>
-          <button class="primary" onclick="adicionarVenda()">Adicionar</button>
-        </div>
-      </div>
+<div class="grid">
+<div class="card"><h4>Meta</h4><div id="meta" class="valor">R$ 0,00</div></div>
+<div class="card"><h4>Total vendido</h4><div id="total" class="valor">R$ 0,00</div></div>
+<div class="card"><h4>Falta</h4><div id="falta" class="valor">R$ 0,00</div></div>
+<div class="card"><h4>Comissão</h4><div id="comissao" class="valor green">R$ 0,00</div></div>
+</div>
 
-      <div class="cards" style="margin-top:20px">
-        <div class="card"><h4>Meta</h4><div id="metaValor" class="valor">R$ 0,00</div></div>
-        <div class="card"><h4>Total vendido</h4><div id="totalVendido" class="valor">R$ 0,00</div></div>
-        <div class="card"><h4>Falta para meta</h4><div id="faltaMeta" class="valor">R$ 0,00</div></div>
-        <div class="card"><h4>Comissão</h4><div id="totalComissao" class="valor" style="color:var(--green)">R$ 0,00</div></div>
-      </div>
+<div class="card">
+<h3>Gráfico de vendas</h3>
+<canvas id="grafico"></canvas>
+</div>
 
-      <div class="card" style="margin-top:20px">
-        👁️ Visitantes do painel: <b id="visitantes">0</b>
-      </div>
-    </div>
+<div class="card">
+<h3>Histórico</h3>
+<table>
+<thead>
+<tr><th>Data</th><th>Venda</th><th>%</th><th>Comissão</th><th>Ação</th></tr>
+</thead>
+<tbody id="lista"></tbody>
+</table>
+</div>
 
-    <!-- HISTÓRICO -->
-    <div id="historico" class="hidden">
-      <div class="card">
-        <h3>Histórico de vendas</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Data</th><th>Valor</th><th>%</th><th>Comissão</th><th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="listaVendas"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ANUAL -->
-    <div id="anual" class="hidden">
-      <div class="card">
-        <h3>Relatório anual</h3>
-        <table>
-          <thead>
-            <tr><th>Mês</th><th>Total vendido</th><th>Comissão</th></tr>
-          </thead>
-          <tbody id="relatorioAnual"></tbody>
-        </table>
-      </div>
-    </div>
-
-  </main>
+</div>
 </div>
 
 <script>
-// ===== LOGIN =====
-const USUARIO_HASH = "admin";
-const SENHA_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; // 1234
-
-async function sha256(msg){
-  const buf = new TextEncoder().encode(msg);
-  const hash = await crypto.subtle.digest("SHA-256", buf);
+// LOGIN
+async function hash(txt){
+  const buf=new TextEncoder().encode(txt);
+  const hash=await crypto.subtle.digest("SHA-256",buf);
   return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");
 }
+const USER="admin";
+const PASS_HASH="03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; //1234
 
 async function entrar(){
-  const u = loginUsuario.value;
-  const s = await sha256(loginSenha.value);
-  if(u===USUARIO_HASH && s===SENHA_HASH){
-    localStorage.setItem("sessao","ativa");
+  if(user.value===USER && await hash(pass.value)===PASS_HASH){
+    localStorage.setItem("sessao","ok");
     iniciar();
-  } else {
-    loginErro.innerText="Usuário ou senha inválidos";
-  }
+  }else erro.innerText="Login inválido";
 }
-
 function sair(){
   localStorage.removeItem("sessao");
   location.reload();
 }
 
-// ===== SISTEMA =====
-let dados = JSON.parse(localStorage.getItem("dadosVendas")) || {meta:0,vendas:[]};
+// SISTEMA
+let dados=JSON.parse(localStorage.getItem("dados"))||{meta:0,vendas:[]};
 
-function salvar(){localStorage.setItem("dadosVendas",JSON.stringify(dados));}
-
-function parseValor(v){return Number(v.replace(/\./g,"").replace(",",".")||0);}
+function salvar(){localStorage.setItem("dados",JSON.stringify(dados));}
+function num(v){return Number(v.replace(/\./g,"").replace(",",".")||0);}
 function moeda(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
 
 function salvarMeta(){
-  dados.meta=parseValor(metaInput.value);
+  dados.meta=num(metaInput.value);
   salvar();atualizar();
 }
 
 function adicionarVenda(){
-  const valor=parseValor(vendaInput.value);
+  const valor=num(vendaInput.value);
   if(valor<=0)return alert("Valor inválido");
   const p=Number(percentual.value);
   dados.vendas.push({
     data:new Date().toLocaleDateString("pt-BR"),
     valor,perc:p,com:valor*p/100
   });
-  salvar();vendaInput.value="";atualizar();
+  vendaInput.value="";
+  salvar();atualizar();
 }
 
-function removerVenda(i){
+function remover(i){
   dados.vendas.splice(i,1);
   salvar();atualizar();
 }
 
+let graf;
 function atualizar(){
-  const total=dados.vendas.reduce((s,v)=>s+v.valor,0);
-  const com=dados.vendas.reduce((s,v)=>s+v.com,0);
-  metaValor.innerText=moeda(dados.meta);
-  totalVendido.innerText=moeda(total);
-  totalComissao.innerText=moeda(com);
-  faltaMeta.innerText=moeda(Math.max(dados.meta-total,0));
+  meta.innerText=moeda(dados.meta);
+  const totalV=dados.vendas.reduce((s,v)=>s+v.valor,0);
+  const totalC=dados.vendas.reduce((s,v)=>s+v.com,0);
+  total.innerText=moeda(totalV);
+  comissao.innerText=moeda(totalC);
+  falta.innerText=moeda(Math.max(dados.meta-totalV,0));
 
-  listaVendas.innerHTML="";
+  lista.innerHTML="";
+  let porDia={};
   dados.vendas.forEach((v,i)=>{
-    listaVendas.innerHTML+=`
-      <tr>
-        <td>${v.data}</td>
-        <td>${moeda(v.valor)}</td>
-        <td>${v.perc}%</td>
-        <td>${moeda(v.com)}</td>
-        <td><button class="red" onclick="removerVenda(${i})">Excluir</button></td>
-      </tr>`;
+    lista.innerHTML+=`<tr>
+    <td>${v.data}</td><td>${moeda(v.valor)}</td>
+    <td>${v.perc}%</td><td>${moeda(v.com)}</td>
+    <td><button class="red" onclick="remover(${i})">X</button></td></tr>`;
+    porDia[v.data]=(porDia[v.data]||0)+v.valor;
   });
 
-  const anual={};
-  dados.vendas.forEach(v=>{
-    const m=v.data.split("/")[1];
-    anual[m]=anual[m]||{v:0,c:0};
-    anual[m].v+=v.valor;
-    anual[m].c+=v.com;
-  });
-  relatorioAnual.innerHTML="";
-  Object.keys(anual).forEach(m=>{
-    relatorioAnual.innerHTML+=`
-      <tr><td>${m}</td><td>${moeda(anual[m].v)}</td><td>${moeda(anual[m].c)}</td></tr>`;
+  if(graf)graf.destroy();
+  graf=new Chart(grafico,{
+    type:"line",
+    data:{
+      labels:Object.keys(porDia),
+      datasets:[{data:Object.values(porDia),label:"Vendas",borderColor:"#6366f1",backgroundColor:"rgba(99,102,241,.3)",fill:true}]
+    }
   });
 }
-
-function mostrar(id){
-  painel.classList.add("hidden");
-  historico.classList.add("hidden");
-  anual.classList.add("hidden");
-  document.getElementById(id).classList.remove("hidden");
-}
-
-// VISITANTES
-let vis = Number(localStorage.getItem("visitas")||0)+1;
-localStorage.setItem("visitas",vis);
-visitantes.innerText=vis;
 
 function iniciar(){
-  telaLogin.classList.add("hidden");
+  login.classList.add("hidden");
   sistema.classList.remove("hidden");
   atualizar();
 }
-
-if(localStorage.getItem("sessao")==="ativa") iniciar();
+if(localStorage.getItem("sessao")==="ok") iniciar();
 </script>
 
 </body>
