@@ -2,49 +2,71 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Controle Corporativo de Vendas</title>
+<title>Controle Profissional de Vendas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
 :root{
-  --bg:#0b1020;
-  --sidebar:#0a0f1e;
-  --card:#111827;
-  --primary:#6366f1;
-  --green:#22c55e;
-  --text:#e5e7eb;
+  --bg:#0b1020;--sidebar:#0a0f1e;--card:#111827;
+  --primary:#6366f1;--green:#22c55e;
+  --red:#ef4444;--text:#e5e7eb;--muted:#9ca3af;
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:Segoe UI,Arial;background:var(--bg);color:var(--text)}
 .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
-aside{background:var(--sidebar);padding:20px}
-aside h2{color:var(--primary)}
-aside button{
-  width:100%;background:#1f2937;color:#fff;border:none;
-  padding:12px;border-radius:10px;margin-bottom:8px;text-align:left;cursor:pointer
+
+aside{
+  background:linear-gradient(180deg,#0a0f1e,#020617);
+  padding:20px
 }
-aside button:hover{background:var(--primary)}
+aside h2{color:var(--primary);margin-bottom:25px}
+aside button{
+  width:100%;background:transparent;color:#c7d2fe;border:none;
+  padding:14px;border-radius:12px;margin-bottom:8px;
+  text-align:left;cursor:pointer;transition:.2s
+}
+aside button:hover{background:#1f2937}
+aside button.active{background:var(--primary);color:#fff}
+
 main{padding:25px}
 .section{display:none}
 .section.active{display:block}
 
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px}
-.card{background:var(--card);padding:20px;border-radius:16px}
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:15px
+}
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:18px
+}
 .valor{font-size:26px;font-weight:bold}
 .green{color:var(--green)}
+.red{color:var(--red)}
+.muted{color:var(--muted)}
 
 input,select,button{
-  width:100%;padding:12px;border-radius:10px;border:none;margin-top:10px
+  width:100%;padding:12px;border-radius:12px;border:none;margin-top:10px;
+  font-size:16px
 }
-button.primary{background:var(--primary);color:#fff;cursor:pointer}
+input,select{background:#f9fafb;color:#111827}
+button.primary{background:var(--primary);color:white;cursor:pointer}
+
+.alert{
+  position:fixed;top:20px;right:20px;
+  background:#16a34a;color:white;
+  padding:14px 18px;border-radius:12px;display:none;z-index:999
+}
 
 table{width:100%;border-collapse:collapse}
-th,td{padding:10px;border-bottom:1px solid #1f2937;text-align:center}
-td button{padding:6px 10px;border-radius:6px;border:none;cursor:pointer}
+th,td{padding:10px;border-bottom:1px solid #1f2937;vertical-align:top}
+.item-chip{
+  background:#1f2937;padding:6px 10px;border-radius:8px;
+  font-size:13px;margin:3px 0
+}
 
 @media(max-width:900px){
   .layout{grid-template-columns:1fr}
@@ -54,78 +76,92 @@ td button{padding:6px 10px;border-radius:6px;border:none;cursor:pointer}
 </head>
 
 <body>
+
+<div class="alert" id="alerta">Salvo com sucesso</div>
+
 <div class="layout">
 
-<!-- MENU -->
 <aside>
   <h2>Vendas</h2>
-  <button onclick="show('painel')">📊 Painel</button>
-  <button onclick="show('vendas')">➕ Nova venda</button>
-  <button onclick="show('historico')">📁 Histórico</button>
-  <button onclick="exportarPDF()">📄 PDF</button>
-  <button onclick="exportarExcel()">📊 Excel</button>
+  <button onclick="show('painel',this)" class="active">📊 Painel</button>
+  <button onclick="show('meta',this)">🎯 Meta do mês</button>
+  <button onclick="show('vendas',this)">➕ Nova venda</button>
+  <button onclick="show('historico',this)">📁 Histórico</button>
 </aside>
 
 <main>
 
-<!-- PAINEL -->
 <section id="painel" class="section active">
   <div class="cards">
-    <div class="card"><h4>Total vendido</h4><div id="totalVendido" class="valor">R$ 0,00</div></div>
-    <div class="card"><h4>Comissão</h4><div id="totalComissao" class="valor green">R$ 0,00</div></div>
+    <div class="card"><div class="muted">Mês ativo</div><div id="mesTexto" class="valor"></div></div>
+    <div class="card"><div class="muted">Total vendido</div><div id="totalVendido" class="valor"></div></div>
+    <div class="card"><div class="muted">Falta para meta</div><div id="faltaMeta" class="valor red"></div></div>
+    <div class="card"><div class="muted">Comissão</div><div id="totalComissao" class="valor green"></div></div>
   </div>
-  <div class="card" style="margin-top:20px">
-    <div id="grafico"></div>
+
+  <div class="cards" style="margin-top:20px">
+    <div class="card"><h4>Resumo do mês</h4><div id="donut1"></div></div>
   </div>
 </section>
 
-<!-- VENDAS -->
+<section id="meta" class="section">
+  <div class="card">
+    <h3>Meta do mês (painel)</h3>
+    <select id="anoMeta"></select>
+    <select id="mesMeta"></select>
+    <input id="metaMes" placeholder="Valor da meta">
+    <button class="primary" onclick="salvarMeta()">Salvar meta</button>
+  </div>
+</section>
+
 <section id="vendas" class="section">
   <div class="card">
     <h3>Nova venda</h3>
 
-    <input id="vendaInput" placeholder="Valor da venda (ex: 2.090,00)">
+    <select id="anoVenda"></select>
+    <select id="mesVenda"></select>
 
+    <input id="valorVenda" placeholder="Valor total da venda">
     <select id="percentual">
-      <option value="6">6% de comissão</option>
-      <option value="5">5% de comissão</option>
-      <option value="4">4% de comissão</option>
-      <option value="3">3% de comissão</option>
+      <option value="6">6%</option>
+      <option value="5">5%</option>
+      <option value="4">4%</option>
+      <option value="3">3%</option>
     </select>
 
-    <input id="clienteInput" placeholder="Nome completo do cliente">
+    <input id="clienteVenda" placeholder="Nome do cliente">
 
-    <select id="grupoProduto" onchange="carregarProdutos()">
-      <option value="">Grupo do produto</option>
-      <option value="Produtos">Produtos</option>
-      <option value="Acessórios">Acessórios</option>
+    <h4 style="margin-top:20px">Itens da venda</h4>
+
+    <select id="grupoItem">
+      <option>Produtos</option>
+      <option>Acessórios</option>
     </select>
 
-    <select id="produtoSelect">
-      <option value="">Produto</option>
+    <select id="tipoItem">
+      <option>Colchão</option>
+      <option>Base</option>
+      <option>Colchonet</option>
+      <option>Acessório</option>
     </select>
 
-    <input id="descricaoProduto" placeholder="Descrição (cor / observação – opcional)">
+    <input id="descricaoItem" placeholder="Descrição do item">
+    <input id="quantidadeItem" type="number" min="1" placeholder="Quantidade">
 
-    <button class="primary" onclick="adicionarVenda()">Adicionar venda</button>
+    <button class="primary" onclick="addItem()">Adicionar item</button>
+
+    <div id="listaItens"></div>
+
+    <button class="primary" onclick="salvarVenda()">Salvar venda</button>
   </div>
 </section>
 
-<!-- HISTÓRICO -->
 <section id="historico" class="section">
   <div class="card">
-    <h3>Histórico de vendas</h3>
+    <h3>Histórico do mês</h3>
     <table>
       <thead>
-        <tr>
-          <th>Data</th>
-          <th>Cliente</th>
-          <th>Produto</th>
-          <th>Valor</th>
-          <th>%</th>
-          <th>Comissão</th>
-          <th>Ações</th>
-        </tr>
+        <tr><th>Data</th><th>Cliente</th><th>Venda</th><th>Itens</th></tr>
       </thead>
       <tbody id="listaVendas"></tbody>
     </table>
@@ -136,53 +172,87 @@ td button{padding:6px 10px;border-radius:6px;border:none;cursor:pointer}
 </div>
 
 <script>
-function num(v){return Number(v.replace(/\./g,"").replace(",","."))}
+const meses=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 function moeda(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+function num(v){return Number(v.replace(/\./g,"").replace(",","."))}
 
-/* BASE DE PRODUTOS */
-const produtosBase = {
-  "Produtos": [
-    "🛏️ Colchão – Casal – 1,38 x 1,88 m",
-    "🛏️ Colchão – Queen – 1,58 x 1,98 m",
-    "🛏️ Colchão – Super King – 1,93 x 2,03 m",
+let dados=JSON.parse(localStorage.getItem("controleVendas"))||{painel:"",meses:{}};
+let itensTemp=[];
+let alerta=document.getElementById("alerta");
 
-    "🪵 Base de cama (normal) – Casal",
-    "🪵 Base de cama (normal) – Queen",
-    "📦 Base de cama (baú) – Casal",
-    "📦 Base de cama (baú) – Queen",
-
-    "🪟 Cabeceira – Casal",
-    "🪟 Cabeceira – Queen",
-
-    "🛋️ Colchonete – Solteiro",
-    "🛋️ Colchonete – Casal"
-  ],
-
-  "Acessórios": [
-    "🧸 Travesseiro – Suave Encosto – Sleep",
-    "🧸 Travesseiro – Suave Encosto – Dino",
-
-    "💧 Protetor de colchão impermeável – Casal – 1,40 m",
-    "💧 Protetor de colchão impermeável – Queen – 1,60 m",
-    "💧 Protetor de colchão impermeável – Super King – 1,95 m"
-  ]
-};
-
-function carregarProdutos(){
-  produtoSelect.innerHTML = `<option value="">Produto</option>`;
-  if(!grupoProduto.value) return;
-
-  produtosBase[grupoProduto.value].forEach(p=>{
-    produtoSelect.innerHTML += `<option value="${p}">${p}</option>`;
-  });
-}
-
-/* DADOS */
-let dados = JSON.parse(localStorage.getItem("controleVendas")) || { vendas:[] };
-
-function show(id){
+function show(id,btn){
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+  document.querySelectorAll("aside button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+function toast(){
+  alerta.style.display="block";
+  setTimeout(()=>alerta.style.display="none",2000);
+}
+
+function init(){
+  let now=new Date();
+  let painel=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+  if(!dados.painel)dados.painel=painel;
+  if(!dados.meses[dados.painel])dados.meses[dados.painel]={meta:0,vendas:[]};
+
+  preencherSelects();
+  atualizar();
+}
+
+function preencherSelects(){
+  let anoAtual=new Date().getFullYear();
+  anoMeta.innerHTML=anoVenda.innerHTML="";
+  for(let a=anoAtual-2;a<=anoAtual+2;a++){
+    anoMeta.innerHTML+=`<option>${a}</option>`;
+    anoVenda.innerHTML+=`<option>${a}</option>`;
+  }
+
+  mesMeta.innerHTML=mesVenda.innerHTML="";
+  meses.forEach((m,i)=>{
+    mesMeta.innerHTML+=`<option value="${i}">${m}</option>`;
+    mesVenda.innerHTML+=`<option value="${i}">${m}</option>`;
+  });
+
+  let [a,m]=dados.painel.split("-");
+  anoMeta.value=a;
+  mesMeta.value=Number(m)-1;
+}
+
+function salvarMeta(){
+  let key=anoMeta.value+"-"+String(Number(mesMeta.value)+1).padStart(2,"0");
+  dados.painel=key;
+  if(!dados.meses[key])dados.meses[key]={meta:0,vendas:[]};
+  dados.meses[key].meta=num(metaMes.value||"0");
+  salvar();toast();
+}
+
+function addItem(){
+  itensTemp.push({
+    tipo:tipoItem.value,
+    descricao:descricaoItem.value,
+    quantidade:Number(quantidadeItem.value)
+  });
+  listaItens.innerHTML+=`<div class="item-chip">${tipoItem.value} – ${descricaoItem.value} | Qtd:${quantidadeItem.value}</div>`;
+  descricaoItem.value="";quantidadeItem.value="";
+}
+
+function salvarVenda(){
+  let key=anoVenda.value+"-"+String(Number(mesVenda.value)+1).padStart(2,"0");
+  if(!dados.meses[key])dados.meses[key]={meta:0,vendas:[]};
+
+  dados.meses[key].vendas.push({
+    valor:num(valorVenda.value),
+    cliente:clienteVenda.value,
+    perc:Number(percentual.value),
+    com:num(valorVenda.value)*Number(percentual.value)/100,
+    itens:itensTemp,
+    data:new Date()
+  });
+  itensTemp=[];listaItens.innerHTML="";
+  salvar();toast();
 }
 
 function salvar(){
@@ -190,112 +260,40 @@ function salvar(){
   atualizar();
 }
 
-function adicionarVenda(){
-  let valor=num(vendaInput.value);
-  let cliente=clienteInput.value.trim();
-  let produto=produtoSelect.value;
-  let desc=descricaoProduto.value.trim();
-  let p=Number(percentual.value);
-
-  if(valor<=0||!cliente||!produto){
-    alert("Preencha valor, cliente e produto");
-    return;
-  }
-
-  dados.vendas.push({
-    id:Date.now(),
-    valor,cliente,produto,
-    descricao:desc,
-    perc:p,
-    com:valor*p/100,
-    data:new Date()
-  });
-
-  vendaInput.value="";
-  clienteInput.value="";
-  grupoProduto.value="";
-  produtoSelect.innerHTML=`<option value="">Produto</option>`;
-  descricaoProduto.value="";
-
-  salvar();
-}
-
-function editar(id){
-  let v=dados.vendas.find(v=>v.id===id);
-  let novo=prompt("Novo valor:",moeda(v.valor));
-  if(!novo)return;
-  v.valor=num(novo);
-  v.com=v.valor*v.perc/100;
-  salvar();
-}
-
-function excluir(id){
-  if(confirm("Excluir venda?")){
-    dados.vendas=dados.vendas.filter(v=>v.id!==id);
-    salvar();
-  }
-}
-
-let chart;
+let d1;
 function atualizar(){
-  let total=dados.vendas.reduce((a,b)=>a+b.valor,0);
-  let com=dados.vendas.reduce((a,b)=>a+b.com,0);
+  let mes=dados.meses[dados.painel];
+  let total=mes.vendas.reduce((a,b)=>a+b.valor,0);
+  let com=mes.vendas.reduce((a,b)=>a+b.com,0);
 
+  let [a,m]=dados.painel.split("-");
+  mesTexto.innerText=meses[Number(m)-1]+" / "+a;
   totalVendido.innerText=moeda(total);
+  faltaMeta.innerText=moeda(Math.max(mes.meta-total,0));
   totalComissao.innerText=moeda(com);
 
   listaVendas.innerHTML="";
-  dados.vendas.forEach(v=>{
+  mes.vendas.forEach(v=>{
     listaVendas.innerHTML+=`
-      <tr>
-        <td>${v.data.toLocaleDateString("pt-BR")}</td>
-        <td>${v.cliente}</td>
-        <td>${v.produto}${v.descricao?`<br><small>${v.descricao}</small>`:""}</td>
-        <td>${moeda(v.valor)}</td>
-        <td>${v.perc}%</td>
-        <td>${moeda(v.com)}</td>
-        <td>
-          <button onclick="editar(${v.id})">✏️</button>
-          <button onclick="excluir(${v.id})">🗑️</button>
-        </td>
-      </tr>`;
+    <tr>
+      <td>${v.data.toLocaleDateString("pt-BR")}</td>
+      <td>${v.cliente}</td>
+      <td>${moeda(v.valor)}</td>
+      <td>${v.itens.map(i=>`${i.tipo} – ${i.descricao} | Qtd:${i.quantidade}`).join("<br>")}</td>
+    </tr>`;
   });
 
-  if(chart)chart.destroy();
-  chart=new ApexCharts(document.querySelector("#grafico"),{
-    chart:{height:300},
-    series:[{name:"Vendas",data:dados.vendas.map(v=>v.valor)}],
-    xaxis:{categories:dados.vendas.map(v=>v.data.toLocaleDateString("pt-BR"))}
+  if(d1)d1.destroy();
+  d1=new ApexCharts(donut1,{
+    chart:{type:"donut"},
+    series:[total,com],
+    labels:["Vendido","Comissão"]
   });
-  chart.render();
+  d1.render();
 }
 
-function exportarPDF(){
-  const {jsPDF}=window.jspdf;
-  const pdf=new jsPDF();
-  pdf.text("Relatório de Vendas",10,10);
-  let y=20;
-  dados.vendas.forEach(v=>{
-    pdf.text(`${v.data.toLocaleDateString("pt-BR")} - ${v.cliente} - ${moeda(v.valor)}`,10,y);
-    y+=8;
-  });
-  pdf.save("vendas.pdf");
-}
-
-function exportarExcel(){
-  let ws=XLSX.utils.json_to_sheet(dados.vendas.map(v=>({
-    Data:v.data.toLocaleDateString("pt-BR"),
-    Cliente:v.cliente,
-    Produto:v.produto,
-    Valor:v.valor,
-    Comissão:v.com
-  })));
-  let wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Vendas");
-  XLSX.writeFile(wb,"vendas.xlsx");
-}
-
-atualizar();
+init();
 </script>
+
 </body>
 </html>
