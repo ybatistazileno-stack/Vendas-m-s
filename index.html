@@ -2,330 +2,302 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Controle de Vendas</title>
+<title>Dashboard Profissional de Vendas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <style>
 :root{
   --bg:#0b1020;
+  --sidebar:#0a0f1e;
   --card:#111827;
-  --card2:#1f2937;
   --primary:#6366f1;
-  --success:#22c55e;
-  --danger:#ef4444;
+  --green:#22c55e;
+  --red:#ef4444;
   --text:#e5e7eb;
   --muted:#9ca3af;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
-  font-family:Segoe UI, Arial;
+  font-family:Segoe UI,Arial;
   background:var(--bg);
   color:var(--text);
 }
-
-/* LOGIN */
-#login{
+.layout{
+  display:grid;
+  grid-template-columns:260px 1fr;
   min-height:100vh;
+}
+aside{
+  background:var(--sidebar);
+  padding:20px;
+}
+aside h2{
+  color:var(--primary);
+  margin-bottom:20px;
+}
+aside button{
+  width:100%;
+  background:#1f2937;
+  color:white;
+  border:none;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:8px;
+  text-align:left;
+  cursor:pointer;
+}
+aside button:hover{background:var(--primary)}
+main{padding:25px}
+.section{display:none}
+.section.active{display:block}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:15px;
+}
+
+/* INDICADORES CIRCULARES */
+.circle-card{
+  background:var(--card);
+  padding:20px;
+  border-radius:18px;
+  text-align:center;
+}
+.circle{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  margin:10px auto;
+  background:conic-gradient(var(--primary) 0%, #1f2937 0%);
   display:flex;
   align-items:center;
   justify-content:center;
+  font-weight:bold;
+  font-size:18px;
 }
-
-.login-box{
-  background:var(--card);
-  padding:30px;
-  border-radius:16px;
-  width:320px;
-  box-shadow:0 20px 40px rgba(0,0,0,.5);
-}
-
-.login-box h2{
-  text-align:center;
-  margin-bottom:20px;
-}
-
-.login-box input{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  margin-bottom:10px;
-}
-
-.password-box{
-  position:relative;
-}
-
-.password-box span{
-  position:absolute;
-  right:10px;
-  top:12px;
-  cursor:pointer;
-}
-
-.login-box button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:var(--primary);
-  color:#fff;
-  margin-top:10px;
-  cursor:pointer;
-}
-
-/* DASHBOARD */
-#app{
-  display:none;
-  padding:20px;
-}
-
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-}
-
-.badge{
-  background:var(--card2);
-  padding:8px 14px;
-  border-radius:20px;
-  font-size:14px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px;
-}
+.circle.green{background:conic-gradient(var(--green) 0%, #1f2937 0%)}
+.circle.red{background:conic-gradient(var(--red) 0%, #1f2937 0%)}
 
 .card{
   background:var(--card);
   padding:20px;
   border-radius:16px;
 }
-
-.card h4{
-  margin:0;
-  color:var(--muted);
-}
-
-.card h2{
-  margin-top:10px;
-}
-
-input,select{
+input,select,button{
   width:100%;
   padding:12px;
   border-radius:10px;
   border:none;
-  margin-top:8px;
-}
-
-button.action{
   margin-top:10px;
-  background:var(--primary);
-  color:#fff;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
 }
-
-.hidden{display:none}
+button.primary{
+  background:var(--primary);
+  color:white;
+}
 
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top:10px;
 }
-
 th,td{
   padding:10px;
-  border-bottom:1px solid #2a2f3a;
+  border-bottom:1px solid #1f2937;
   text-align:center;
 }
+td button{
+  padding:6px 10px;
+  border-radius:6px;
+  border:none;
+  cursor:pointer;
+}
 
-canvas{
-  max-width:100%;
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  aside{display:flex;gap:10px;overflow:auto}
 }
 </style>
 </head>
 
 <body>
+<div class="layout">
 
-<!-- LOGIN -->
-<div id="login">
-  <div class="login-box">
-    <h2>Login</h2>
-    <input id="user" placeholder="Usuário">
-    <div class="password-box">
-      <input id="pass" type="password" placeholder="Senha">
-      <span onclick="togglePass()">👁</span>
-    </div>
-    <button onclick="login()">Entrar</button>
-    <button onclick="visitante()" style="background:#374151">Entrar como visitante</button>
+<aside>
+  <h2>Vendas</h2>
+  <button onclick="show('painel')">📊 Painel</button>
+  <button onclick="show('meta')">🎯 Meta do mês</button>
+  <button onclick="show('vendas')">➕ Nova venda</button>
+  <button onclick="show('historico')">📁 Histórico</button>
+</aside>
+
+<main>
+
+<section id="painel" class="section active">
+
+<div class="cards">
+  <div class="circle-card">
+    <h4>Meta do mês</h4>
+    <div id="cMeta" class="circle">R$ 0</div>
+  </div>
+  <div class="circle-card">
+    <h4>Total vendido</h4>
+    <div id="cTotal" class="circle green">R$ 0</div>
+  </div>
+  <div class="circle-card">
+    <h4>Falta p/ meta</h4>
+    <div id="cFalta" class="circle red">R$ 0</div>
+  </div>
+  <div class="circle-card">
+    <h4>Comissão</h4>
+    <div id="cComissao" class="circle green">R$ 0</div>
   </div>
 </div>
 
-<!-- APP -->
-<div id="app">
-  <div class="header">
-    <h1>Controle de Vendas</h1>
-    <div class="badge" id="perfil"></div>
-  </div>
+<div class="card" style="margin-top:20px">
+  <h3>Vendas – Evolução</h3>
+  <div id="grafico"></div>
+</div>
 
-  <!-- ADMIN -->
-  <div id="adminArea">
-    <div class="card">
-      <h4>Meta do mês (R$)</h4>
-      <input id="metaInput" placeholder="Ex: 15000">
-      <button class="action" onclick="salvarMeta()">Salvar meta</button>
-    </div>
+</section>
 
-    <div class="card">
-      <h4>Nova venda</h4>
-      <input id="vendaInput" placeholder="Ex: 2090,00">
-      <select id="percInput">
-        <option value="6">6%</option>
-        <option value="5">5%</option>
-        <option value="4">4%</option>
-        <option value="3">3%</option>
-      </select>
-      <button class="action" onclick="addVenda()">Adicionar venda</button>
-    </div>
-  </div>
+<section id="meta" class="section">
+<div class="card">
+  <h3>Meta mensal</h3>
+  <select id="mesMeta"></select>
+  <input id="valorMeta" placeholder="Ex: 15.000,00">
+  <button class="primary" onclick="salvarMeta()">Salvar meta</button>
+</div>
+</section>
 
-  <!-- INDICADORES -->
-  <div class="grid">
-    <div class="card"><h4>Meta</h4><h2 id="meta">R$ 0,00</h2></div>
-    <div class="card"><h4>Total vendido</h4><h2 id="total">R$ 0,00</h2></div>
-    <div class="card"><h4>Falta para meta</h4><h2 id="falta">R$ 0,00</h2></div>
-    <div class="card"><h4>Comissão</h4><h2 id="comissao" style="color:var(--success)">R$ 0,00</h2></div>
-  </div>
+<section id="vendas" class="section">
+<div class="card">
+  <h3>Nova venda</h3>
+  <input id="cliente" placeholder="Nome completo do cliente">
+  <input id="valorVenda" placeholder="Valor da venda">
+  <select id="percentual">
+    <option value="6">6%</option>
+    <option value="5">5%</option>
+    <option value="4">4%</option>
+  </select>
 
-  <!-- GRAFICO -->
-  <div class="card">
-    <h4>Gráfico mensal</h4>
-    <canvas id="grafico"></canvas>
-  </div>
+  <h4 style="margin-top:15px">Produtos / Acessórios</h4>
+  <textarea id="itens" rows="4" placeholder="Ex:
+Colchão Queen Azul - 2 un
+Base Baú Branca - 1 un
+Travesseiro Sleep - 4 un"></textarea>
 
-  <!-- HISTORICO -->
-  <div class="card">
-    <h4>Histórico de vendas</h4>
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Venda</th>
-          <th>%</th>
-          <th>Comissão</th>
-        </tr>
-      </thead>
-      <tbody id="lista"></tbody>
-    </table>
-  </div>
+  <button class="primary" onclick="adicionarVenda()">Adicionar venda</button>
+</div>
+</section>
+
+<section id="historico" class="section">
+<div class="card">
+  <h3>Histórico do mês</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Cliente</th>
+        <th>Itens</th>
+        <th>Valor</th>
+        <th>Comissão</th>
+      </tr>
+    </thead>
+    <tbody id="lista"></tbody>
+  </table>
+</div>
+</section>
+
+</main>
 </div>
 
 <script>
-let dados = JSON.parse(localStorage.getItem("dados")) || {
-  meta:0,
-  vendas:[]
+function num(v){return Number(v.replace(/\./g,"").replace(",","."))}
+function moeda(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+
+let dados = JSON.parse(localStorage.getItem("vendasPro")) || {
+  metas:{},
+  vendas:{}
 };
-let isAdmin=false;
-let chart;
 
-function togglePass(){
-  const p=document.getElementById("pass");
-  p.type=p.type==="password"?"text":"password";
+let mesAtual = new Date().toISOString().slice(0,7);
+
+function show(id){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
-function login(){
-  if(user.value==="admin" && pass.value==="admin123"){
-    isAdmin=true;
-    iniciar();
-  }else{
-    alert("Login inválido");
-  }
-}
-
-function visitante(){
-  isAdmin=false;
-  iniciar();
-}
-
-function iniciar(){
-  login.style.display="none";
-  app.style.display="block";
-  perfil.innerText=isAdmin?"Administrador":"Visitante";
-  if(!isAdmin) adminArea.style.display="none";
+function salvar(){
+  localStorage.setItem("vendasPro",JSON.stringify(dados));
   atualizar();
 }
 
 function salvarMeta(){
-  dados.meta=Number(metaInput.value.replace(",","."))||0;
+  dados.metas[mesMeta.value]=num(valorMeta.value||"0");
+  alert("Meta salva com sucesso");
   salvar();
 }
 
-function addVenda(){
-  const valor=Number(vendaInput.value.replace(",","."))||0;
-  if(valor<=0) return;
-  const p=Number(percInput.value);
-  dados.vendas.push({
-    data:new Date().toLocaleDateString("pt-BR"),
+function adicionarVenda(){
+  if(!dados.vendas[mesAtual])dados.vendas[mesAtual]=[];
+  let valor=num(valorVenda.value);
+  let p=Number(percentual.value);
+  dados.vendas[mesAtual].push({
+    data:new Date(),
+    cliente:cliente.value,
+    itens:itens.value,
     valor,
-    perc:p,
-    com:valor*p/100
+    comissao:valor*p/100
   });
-  vendaInput.value="";
+  cliente.value="";valorVenda.value="";itens.value="";
   salvar();
 }
 
-function salvar(){
-  localStorage.setItem("dados",JSON.stringify(dados));
-  atualizar();
-}
-
+let grafico;
 function atualizar(){
-  meta.innerText="R$ "+dados.meta.toFixed(2);
-  let total=0,com=0;
+  mesMeta.innerHTML="";
+  for(let i=1;i<=12;i++){
+    let m=String(i).padStart(2,"0");
+    mesMeta.innerHTML+=`<option value="${new Date().getFullYear()}-${m}">${m}/${new Date().getFullYear()}</option>`;
+  }
+  mesMeta.value=mesAtual;
+
+  let vendas=dados.vendas[mesAtual]||[];
+  let total=vendas.reduce((a,b)=>a+b.valor,0);
+  let com=vendas.reduce((a,b)=>a+b.comissao,0);
+  let meta=dados.metas[mesAtual]||0;
+
+  cMeta.innerText=moeda(meta);
+  cTotal.innerText=moeda(total);
+  cFalta.innerText=moeda(Math.max(meta-total,0));
+  cComissao.innerText=moeda(com);
+
   lista.innerHTML="";
-  dados.vendas.forEach(v=>{
-    total+=v.valor;
-    com+=v.com;
-    lista.innerHTML+=`<tr>
-      <td>${v.data}</td>
-      <td>R$ ${v.valor.toFixed(2)}</td>
-      <td>${v.perc}%</td>
-      <td>R$ ${v.com.toFixed(2)}</td>
+  vendas.forEach(v=>{
+    lista.innerHTML+=`
+    <tr>
+      <td>${v.data.toLocaleDateString("pt-BR")}</td>
+      <td>${v.cliente}</td>
+      <td style="white-space:pre-line">${v.itens}</td>
+      <td>${moeda(v.valor)}</td>
+      <td>${moeda(v.comissao)}</td>
     </tr>`;
   });
-  total.innerText="R$ "+total.toFixed(2);
-  comissao.innerText="R$ "+com.toFixed(2);
-  falta.innerText="R$ "+Math.max(dados.meta-total,0).toFixed(2);
-  grafico(total);
+
+  if(grafico)grafico.destroy();
+  grafico=new ApexCharts(document.querySelector("#grafico"),{
+    chart:{height:300,type:"line"},
+    series:[{name:"Vendas",data:vendas.map(v=>v.valor)}],
+    xaxis:{categories:vendas.map((v,i)=>i+1)}
+  });
+  grafico.render();
 }
 
-function grafico(total){
-  if(chart) chart.destroy();
-  chart=new Chart(document.getElementById("grafico"),{
-    type:"bar",
-    data:{
-      labels:["Meta","Vendido"],
-      datasets:[{
-        data:[dados.meta,total],
-        backgroundColor:["#6366f1","#22c55e"]
-      }]
-    }
-  });
-}
+atualizar();
 </script>
+
 </body>
 </html>
