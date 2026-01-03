@@ -17,88 +17,34 @@
   --primary:#6366f1;
   --green:#22c55e;
   --text:#e5e7eb;
-  --muted:#9ca3af;
 }
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Segoe UI,Arial;
-  background:var(--bg);
-  color:var(--text);
-}
-.layout{
-  display:grid;
-  grid-template-columns:260px 1fr;
-  min-height:100vh;
-}
-aside{
-  background:var(--sidebar);
-  padding:20px;
-}
-aside h2{
-  color:var(--primary);
-  margin-bottom:20px;
-}
+body{margin:0;font-family:Segoe UI,Arial;background:var(--bg);color:var(--text)}
+.layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+aside{background:var(--sidebar);padding:20px}
+aside h2{color:var(--primary)}
 aside button{
-  width:100%;
-  background:#1f2937;
-  color:white;
-  border:none;
-  padding:12px;
-  border-radius:10px;
-  margin-bottom:8px;
-  text-align:left;
-  cursor:pointer;
+  width:100%;background:#1f2937;color:#fff;border:none;
+  padding:12px;border-radius:10px;margin-bottom:8px;text-align:left;cursor:pointer
 }
 aside button:hover{background:var(--primary)}
 main{padding:25px}
 .section{display:none}
 .section.active{display:block}
 
-/* CARDS */
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px;
-}
-.card{
-  background:var(--card);
-  padding:20px;
-  border-radius:16px;
-}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px}
+.card{background:var(--card);padding:20px;border-radius:16px}
 .valor{font-size:26px;font-weight:bold}
 .green{color:var(--green)}
 
-/* INPUTS */
 input,select,button{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  margin-top:10px;
+  width:100%;padding:12px;border-radius:10px;border:none;margin-top:10px
 }
-button.primary{
-  background:var(--primary);
-  color:white;
-  cursor:pointer;
-}
+button.primary{background:var(--primary);color:#fff;cursor:pointer}
 
-/* TABLE */
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  padding:10px;
-  border-bottom:1px solid #1f2937;
-  text-align:center;
-}
-td button{
-  padding:6px 10px;
-  border-radius:6px;
-  border:none;
-  cursor:pointer;
-}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #1f2937;text-align:center}
+td button{padding:6px 10px;border-radius:6px;border:none;cursor:pointer}
 
 @media(max-width:900px){
   .layout{grid-template-columns:1fr}
@@ -128,7 +74,6 @@ td button{
     <div class="card"><h4>Total vendido</h4><div id="totalVendido" class="valor">R$ 0,00</div></div>
     <div class="card"><h4>Comissão</h4><div id="totalComissao" class="valor green">R$ 0,00</div></div>
   </div>
-
   <div class="card" style="margin-top:20px">
     <div id="grafico"></div>
   </div>
@@ -150,11 +95,17 @@ td button{
 
     <input id="clienteInput" placeholder="Nome completo do cliente">
 
-    <select id="produtoSelect">
-      <option value="">Selecione o produto</option>
+    <select id="grupoProduto" onchange="carregarProdutos()">
+      <option value="">Grupo do produto</option>
+      <option value="Produtos">Produtos</option>
+      <option value="Acessórios">Acessórios</option>
     </select>
 
-    <input id="descricaoProduto" placeholder="Descrição (cor, observação – opcional)">
+    <select id="produtoSelect">
+      <option value="">Produto</option>
+    </select>
+
+    <input id="descricaoProduto" placeholder="Descrição (cor / observação – opcional)">
 
     <button class="primary" onclick="adicionarVenda()">Adicionar venda</button>
   </div>
@@ -188,34 +139,43 @@ td button{
 function num(v){return Number(v.replace(/\./g,"").replace(",","."))}
 function moeda(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
 
-/* PRODUTOS */
-const produtos = [
-  "🛏️ Colchão – Casal – 1,38 x 1,88 m",
-  "🛏️ Colchão – Queen – 1,58 x 1,98 m",
-  "🛏️ Colchão – Super King – 1,93 x 2,03 m",
+/* BASE DE PRODUTOS */
+const produtosBase = {
+  "Produtos": [
+    "🛏️ Colchão – Casal – 1,38 x 1,88 m",
+    "🛏️ Colchão – Queen – 1,58 x 1,98 m",
+    "🛏️ Colchão – Super King – 1,93 x 2,03 m",
 
-  "🪵 Base normal – Casal",
-  "🪵 Base normal – Queen",
-  "📦 Base baú – Casal",
-  "📦 Base baú – Queen",
+    "🪵 Base de cama (normal) – Casal",
+    "🪵 Base de cama (normal) – Queen",
+    "📦 Base de cama (baú) – Casal",
+    "📦 Base de cama (baú) – Queen",
 
-  "🪟 Cabeceira – Casal",
-  "🪟 Cabeceira – Queen",
+    "🪟 Cabeceira – Casal",
+    "🪟 Cabeceira – Queen",
 
-  "🛋️ Colchonete – Solteiro",
-  "🛋️ Colchonete – Casal",
+    "🛋️ Colchonete – Solteiro",
+    "🛋️ Colchonete – Casal"
+  ],
 
-  "🧸 Travesseiro – Suave Encosto – Sleep",
-  "🧸 Travesseiro – Suave Encosto – Dino",
+  "Acessórios": [
+    "🧸 Travesseiro – Suave Encosto – Sleep",
+    "🧸 Travesseiro – Suave Encosto – Dino",
 
-  "💧 Protetor impermeável – Casal 1,40 m",
-  "💧 Protetor impermeável – Queen 1,60 m",
-  "💧 Protetor impermeável – Super King 1,95 m"
-];
+    "💧 Protetor de colchão impermeável – Casal – 1,40 m",
+    "💧 Protetor de colchão impermeável – Queen – 1,60 m",
+    "💧 Protetor de colchão impermeável – Super King – 1,95 m"
+  ]
+};
 
-produtos.forEach(p=>{
-  produtoSelect.innerHTML += `<option value="${p}">${p}</option>`;
-});
+function carregarProdutos(){
+  produtoSelect.innerHTML = `<option value="">Produto</option>`;
+  if(!grupoProduto.value) return;
+
+  produtosBase[grupoProduto.value].forEach(p=>{
+    produtoSelect.innerHTML += `<option value="${p}">${p}</option>`;
+  });
+}
 
 /* DADOS */
 let dados = JSON.parse(localStorage.getItem("controleVendas")) || { vendas:[] };
@@ -253,7 +213,8 @@ function adicionarVenda(){
 
   vendaInput.value="";
   clienteInput.value="";
-  produtoSelect.value="";
+  grupoProduto.value="";
+  produtoSelect.innerHTML=`<option value="">Produto</option>`;
   descricaoProduto.value="";
 
   salvar();
