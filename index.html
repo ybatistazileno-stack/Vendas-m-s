@@ -2,319 +2,339 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Controle de Vendas</title>
+<title>Controle Corporativo de Vendas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
 :root{
   --bg:#0b1020;
+  --sidebar:#0a0f1e;
   --card:#111827;
   --primary:#6366f1;
   --green:#22c55e;
-  --red:#ef4444;
   --text:#e5e7eb;
   --muted:#9ca3af;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
+  font-family:Segoe UI,Arial;
   background:var(--bg);
   color:var(--text);
-  font-family:Segoe UI, Arial;
 }
-
-.hidden{display:none}
-
 .layout{
   display:grid;
-  grid-template-columns:240px 1fr;
+  grid-template-columns:260px 1fr;
   min-height:100vh;
 }
-
-/* LOGIN */
-.login{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-}
-
-.login-box{
-  background:var(--card);
-  padding:30px;
-  border-radius:16px;
-  width:320px;
-}
-
-.login-box h2{text-align:center}
-
-/* MENU */
-.menu{
-  background:#0a0f1e;
+aside{
+  background:var(--sidebar);
   padding:20px;
 }
-
-.menu h2{color:var(--primary)}
-
-.menu button{
+aside h2{
+  color:var(--primary);
+  margin-bottom:20px;
+}
+aside button{
   width:100%;
-  margin:6px 0;
-  padding:10px;
-  border:none;
-  border-radius:8px;
   background:#1f2937;
-  color:var(--text);
+  color:white;
+  border:none;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:8px;
+  text-align:left;
   cursor:pointer;
 }
+aside button:hover{background:var(--primary)}
+main{padding:25px}
+.section{display:none}
+.section.active{display:block}
 
-.menu button:hover{background:#374151}
-
-/* CONTEÚDO */
-.main{padding:25px}
-
+/* CARDS */
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:15px;
 }
-
 .card{
   background:var(--card);
   padding:20px;
   border-radius:16px;
 }
+.valor{font-size:26px;font-weight:bold}
+.green{color:var(--green)}
 
+/* INPUTS */
 input,select,button{
   width:100%;
-  padding:10px;
-  border-radius:8px;
+  padding:12px;
+  border-radius:10px;
   border:none;
-  margin-top:8px;
+  margin-top:10px;
+}
+button.primary{
+  background:var(--primary);
+  color:white;
+  cursor:pointer;
 }
 
-button.primary{background:var(--primary);color:white}
-button.red{background:var(--red);color:white}
-button.green{background:var(--green);color:white}
-
-.valor{font-size:26px;font-weight:bold}
-
+/* TABLE */
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top:15px;
 }
-
 th,td{
   padding:10px;
   border-bottom:1px solid #1f2937;
-  text-align:left;
+  text-align:center;
 }
-th{color:var(--muted)}
+td button{
+  padding:6px 10px;
+  border-radius:6px;
+  border:none;
+  cursor:pointer;
+}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  aside{display:flex;gap:10px;overflow:auto}
+}
 </style>
 </head>
 
 <body>
+<div class="layout">
 
-<!-- LOGIN -->
-<div id="telaLogin" class="login">
-  <div class="login-box">
-    <h2>Acesso ao Painel</h2>
-    <input id="loginUsuario" placeholder="Usuário">
-    <input id="loginSenha" type="password" placeholder="Senha">
-    <button class="primary" onclick="entrar()">Entrar</button>
-    <p id="loginErro" style="color:var(--red);text-align:center"></p>
+<!-- MENU -->
+<aside>
+  <h2>Vendas</h2>
+  <button onclick="show('painel')">📊 Painel</button>
+  <button onclick="show('vendas')">➕ Nova venda</button>
+  <button onclick="show('historico')">📁 Histórico</button>
+  <button onclick="exportarPDF()">📄 PDF</button>
+  <button onclick="exportarExcel()">📊 Excel</button>
+</aside>
+
+<main>
+
+<!-- PAINEL -->
+<section id="painel" class="section active">
+  <div class="cards">
+    <div class="card"><h4>Total vendido</h4><div id="totalVendido" class="valor">R$ 0,00</div></div>
+    <div class="card"><h4>Comissão</h4><div id="totalComissao" class="valor green">R$ 0,00</div></div>
   </div>
-</div>
 
-<!-- SISTEMA -->
-<div id="sistema" class="layout hidden">
+  <div class="card" style="margin-top:20px">
+    <div id="grafico"></div>
+  </div>
+</section>
 
-  <aside class="menu">
-    <h2>Vendas</h2>
-    <button onclick="mostrar('painel')">Painel</button>
-    <button onclick="mostrar('historico')">Histórico</button>
-    <button onclick="mostrar('anual')">Relatório anual</button>
-    <button class="red" onclick="sair()">Sair</button>
-  </aside>
+<!-- VENDAS -->
+<section id="vendas" class="section">
+  <div class="card">
+    <h3>Nova venda</h3>
 
-  <main class="main">
+    <input id="vendaInput" placeholder="Valor da venda (ex: 2.090,00)">
 
-    <!-- PAINEL -->
-    <div id="painel">
-      <div class="cards">
-        <div class="card">
-          <h4>Meta do mês</h4>
-          <input id="metaInput">
-          <button class="primary" onclick="salvarMeta()">Salvar meta</button>
-        </div>
+    <select id="percentual">
+      <option value="6">6% de comissão</option>
+      <option value="5">5% de comissão</option>
+      <option value="4">4% de comissão</option>
+      <option value="3">3% de comissão</option>
+    </select>
 
-        <div class="card">
-          <h4>Nova venda</h4>
-          <input id="vendaInput">
-          <select id="percentual">
-            <option value="6">6%</option>
-            <option value="5">5%</option>
-            <option value="4">4%</option>
-            <option value="3">3%</option>
-          </select>
-          <button class="primary" onclick="adicionarVenda()">Adicionar</button>
-        </div>
-      </div>
+    <input id="clienteInput" placeholder="Nome completo do cliente">
 
-      <div class="cards" style="margin-top:20px">
-        <div class="card"><h4>Meta</h4><div id="metaValor" class="valor">R$ 0,00</div></div>
-        <div class="card"><h4>Total vendido</h4><div id="totalVendido" class="valor">R$ 0,00</div></div>
-        <div class="card"><h4>Falta para meta</h4><div id="faltaMeta" class="valor">R$ 0,00</div></div>
-        <div class="card"><h4>Comissão</h4><div id="totalComissao" class="valor" style="color:var(--green)">R$ 0,00</div></div>
-      </div>
+    <select id="produtoSelect">
+      <option value="">Selecione o produto</option>
+    </select>
 
-      <div class="card" style="margin-top:20px">
-        👁️ Visitantes do painel: <b id="visitantes">0</b>
-      </div>
-    </div>
+    <input id="descricaoProduto" placeholder="Descrição (cor, observação – opcional)">
 
-    <!-- HISTÓRICO -->
-    <div id="historico" class="hidden">
-      <div class="card">
-        <h3>Histórico de vendas</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Data</th><th>Valor</th><th>%</th><th>Comissão</th><th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="listaVendas"></tbody>
-        </table>
-      </div>
-    </div>
+    <button class="primary" onclick="adicionarVenda()">Adicionar venda</button>
+  </div>
+</section>
 
-    <!-- ANUAL -->
-    <div id="anual" class="hidden">
-      <div class="card">
-        <h3>Relatório anual</h3>
-        <table>
-          <thead>
-            <tr><th>Mês</th><th>Total vendido</th><th>Comissão</th></tr>
-          </thead>
-          <tbody id="relatorioAnual"></tbody>
-        </table>
-      </div>
-    </div>
+<!-- HISTÓRICO -->
+<section id="historico" class="section">
+  <div class="card">
+    <h3>Histórico de vendas</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Cliente</th>
+          <th>Produto</th>
+          <th>Valor</th>
+          <th>%</th>
+          <th>Comissão</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="listaVendas"></tbody>
+    </table>
+  </div>
+</section>
 
-  </main>
+</main>
 </div>
 
 <script>
-// ===== LOGIN =====
-const USUARIO_HASH = "admin";
-const SENHA_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; // 1234
+function num(v){return Number(v.replace(/\./g,"").replace(",","."))}
+function moeda(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
 
-async function sha256(msg){
-  const buf = new TextEncoder().encode(msg);
-  const hash = await crypto.subtle.digest("SHA-256", buf);
-  return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");
+/* PRODUTOS */
+const produtos = [
+  "🛏️ Colchão – Casal – 1,38 x 1,88 m",
+  "🛏️ Colchão – Queen – 1,58 x 1,98 m",
+  "🛏️ Colchão – Super King – 1,93 x 2,03 m",
+
+  "🪵 Base normal – Casal",
+  "🪵 Base normal – Queen",
+  "📦 Base baú – Casal",
+  "📦 Base baú – Queen",
+
+  "🪟 Cabeceira – Casal",
+  "🪟 Cabeceira – Queen",
+
+  "🛋️ Colchonete – Solteiro",
+  "🛋️ Colchonete – Casal",
+
+  "🧸 Travesseiro – Suave Encosto – Sleep",
+  "🧸 Travesseiro – Suave Encosto – Dino",
+
+  "💧 Protetor impermeável – Casal 1,40 m",
+  "💧 Protetor impermeável – Queen 1,60 m",
+  "💧 Protetor impermeável – Super King 1,95 m"
+];
+
+produtos.forEach(p=>{
+  produtoSelect.innerHTML += `<option value="${p}">${p}</option>`;
+});
+
+/* DADOS */
+let dados = JSON.parse(localStorage.getItem("controleVendas")) || { vendas:[] };
+
+function show(id){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
-async function entrar(){
-  const u = loginUsuario.value;
-  const s = await sha256(loginSenha.value);
-  if(u===USUARIO_HASH && s===SENHA_HASH){
-    localStorage.setItem("sessao","ativa");
-    iniciar();
-  } else {
-    loginErro.innerText="Usuário ou senha inválidos";
-  }
-}
-
-function sair(){
-  localStorage.removeItem("sessao");
-  location.reload();
-}
-
-// ===== SISTEMA =====
-let dados = JSON.parse(localStorage.getItem("dadosVendas")) || {meta:0,vendas:[]};
-
-function salvar(){localStorage.setItem("dadosVendas",JSON.stringify(dados));}
-
-function parseValor(v){return Number(v.replace(/\./g,"").replace(",",".")||0);}
-function moeda(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
-
-function salvarMeta(){
-  dados.meta=parseValor(metaInput.value);
-  salvar();atualizar();
-}
-
-function adicionarVenda(){
-  const valor=parseValor(vendaInput.value);
-  if(valor<=0)return alert("Valor inválido");
-  const p=Number(percentual.value);
-  dados.vendas.push({
-    data:new Date().toLocaleDateString("pt-BR"),
-    valor,perc:p,com:valor*p/100
-  });
-  salvar();vendaInput.value="";atualizar();
-}
-
-function removerVenda(i){
-  dados.vendas.splice(i,1);
-  salvar();atualizar();
-}
-
-function atualizar(){
-  const total=dados.vendas.reduce((s,v)=>s+v.valor,0);
-  const com=dados.vendas.reduce((s,v)=>s+v.com,0);
-  metaValor.innerText=moeda(dados.meta);
-  totalVendido.innerText=moeda(total);
-  totalComissao.innerText=moeda(com);
-  faltaMeta.innerText=moeda(Math.max(dados.meta-total,0));
-
-  listaVendas.innerHTML="";
-  dados.vendas.forEach((v,i)=>{
-    listaVendas.innerHTML+=`
-      <tr>
-        <td>${v.data}</td>
-        <td>${moeda(v.valor)}</td>
-        <td>${v.perc}%</td>
-        <td>${moeda(v.com)}</td>
-        <td><button class="red" onclick="removerVenda(${i})">Excluir</button></td>
-      </tr>`;
-  });
-
-  const anual={};
-  dados.vendas.forEach(v=>{
-    const m=v.data.split("/")[1];
-    anual[m]=anual[m]||{v:0,c:0};
-    anual[m].v+=v.valor;
-    anual[m].c+=v.com;
-  });
-  relatorioAnual.innerHTML="";
-  Object.keys(anual).forEach(m=>{
-    relatorioAnual.innerHTML+=`
-      <tr><td>${m}</td><td>${moeda(anual[m].v)}</td><td>${moeda(anual[m].c)}</td></tr>`;
-  });
-}
-
-function mostrar(id){
-  painel.classList.add("hidden");
-  historico.classList.add("hidden");
-  anual.classList.add("hidden");
-  document.getElementById(id).classList.remove("hidden");
-}
-
-// VISITANTES
-let vis = Number(localStorage.getItem("visitas")||0)+1;
-localStorage.setItem("visitas",vis);
-visitantes.innerText=vis;
-
-function iniciar(){
-  telaLogin.classList.add("hidden");
-  sistema.classList.remove("hidden");
+function salvar(){
+  localStorage.setItem("controleVendas",JSON.stringify(dados));
   atualizar();
 }
 
-if(localStorage.getItem("sessao")==="ativa") iniciar();
-</script>
+function adicionarVenda(){
+  let valor=num(vendaInput.value);
+  let cliente=clienteInput.value.trim();
+  let produto=produtoSelect.value;
+  let desc=descricaoProduto.value.trim();
+  let p=Number(percentual.value);
 
+  if(valor<=0||!cliente||!produto){
+    alert("Preencha valor, cliente e produto");
+    return;
+  }
+
+  dados.vendas.push({
+    id:Date.now(),
+    valor,cliente,produto,
+    descricao:desc,
+    perc:p,
+    com:valor*p/100,
+    data:new Date()
+  });
+
+  vendaInput.value="";
+  clienteInput.value="";
+  produtoSelect.value="";
+  descricaoProduto.value="";
+
+  salvar();
+}
+
+function editar(id){
+  let v=dados.vendas.find(v=>v.id===id);
+  let novo=prompt("Novo valor:",moeda(v.valor));
+  if(!novo)return;
+  v.valor=num(novo);
+  v.com=v.valor*v.perc/100;
+  salvar();
+}
+
+function excluir(id){
+  if(confirm("Excluir venda?")){
+    dados.vendas=dados.vendas.filter(v=>v.id!==id);
+    salvar();
+  }
+}
+
+let chart;
+function atualizar(){
+  let total=dados.vendas.reduce((a,b)=>a+b.valor,0);
+  let com=dados.vendas.reduce((a,b)=>a+b.com,0);
+
+  totalVendido.innerText=moeda(total);
+  totalComissao.innerText=moeda(com);
+
+  listaVendas.innerHTML="";
+  dados.vendas.forEach(v=>{
+    listaVendas.innerHTML+=`
+      <tr>
+        <td>${v.data.toLocaleDateString("pt-BR")}</td>
+        <td>${v.cliente}</td>
+        <td>${v.produto}${v.descricao?`<br><small>${v.descricao}</small>`:""}</td>
+        <td>${moeda(v.valor)}</td>
+        <td>${v.perc}%</td>
+        <td>${moeda(v.com)}</td>
+        <td>
+          <button onclick="editar(${v.id})">✏️</button>
+          <button onclick="excluir(${v.id})">🗑️</button>
+        </td>
+      </tr>`;
+  });
+
+  if(chart)chart.destroy();
+  chart=new ApexCharts(document.querySelector("#grafico"),{
+    chart:{height:300},
+    series:[{name:"Vendas",data:dados.vendas.map(v=>v.valor)}],
+    xaxis:{categories:dados.vendas.map(v=>v.data.toLocaleDateString("pt-BR"))}
+  });
+  chart.render();
+}
+
+function exportarPDF(){
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF();
+  pdf.text("Relatório de Vendas",10,10);
+  let y=20;
+  dados.vendas.forEach(v=>{
+    pdf.text(`${v.data.toLocaleDateString("pt-BR")} - ${v.cliente} - ${moeda(v.valor)}`,10,y);
+    y+=8;
+  });
+  pdf.save("vendas.pdf");
+}
+
+function exportarExcel(){
+  let ws=XLSX.utils.json_to_sheet(dados.vendas.map(v=>({
+    Data:v.data.toLocaleDateString("pt-BR"),
+    Cliente:v.cliente,
+    Produto:v.produto,
+    Valor:v.valor,
+    Comissão:v.com
+  })));
+  let wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Vendas");
+  XLSX.writeFile(wb,"vendas.xlsx");
+}
+
+atualizar();
+</script>
 </body>
 </html>
